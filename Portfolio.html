@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Deeptanu Karmakar's creative and technical portfolio showcasing projects, skills, and experience.">
+    <meta name="author" content="Deeptanu Karmakar">
+    <title>Deeptanu Karmakar - Creative Portfolio</title>
+    
+    <!-- External Libraries & Fonts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;600&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <!-- Defer Three.js loading to prevent render-blocking -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
+    
+    <style>
+        /* CSS Variables for easier theme management */
+        :root {
+            --bg-light: #FDFBF5;
+            --text-light: #3a3a3a;
+            --primary-accent-light: #4A5548;
+            --timeline-dot-light: #8E9B84;
+            --content-box-bg-light: rgba(255, 255, 255, 0.85);
+            --button-bg-light: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.1));
+            --button-hover-bg-light: linear-gradient(135deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.3));
+
+            --bg-dark: #000000;
+            --text-dark: #e5e7eb;
+            --primary-accent-dark: #f0f0f0;
+            --timeline-dot-dark: #A7B89D;
+            --content-box-bg-dark: rgba(28, 28, 30, 0.75);
+            --button-bg-dark: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            --button-hover-bg-dark: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+        }
+
+        html { scroll-behavior: smooth; }
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-light);
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+            transition: background-color 0.5s ease, color 0.5s ease;
+        }
+        #bg-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            transition: opacity 1s ease;
+        }
+        .page {
+            display: none;
+            width: 100%;
+            min-height: 100vh;
+            padding: 5rem 1rem;
+            animation: fadeIn 1s forwards;
+            position: relative;
+            z-index: 1;
+        }
+        @media (min-width: 768px) { .page { padding: 6rem 2rem; } }
+        .page.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .page-scrollable.active { justify-content: flex-start; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .font-playfair { font-family: 'Playfair Display', serif; }
+        .font-dancing { font-family: 'Dancing Script', cursive; color: var(--primary-accent-light); }
+        
+        .content-box {
+            background-color: var(--content-box-bg-light);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+            max-width: 1000px;
+            width: 100%;
+            transition: background-color 0.5s ease;
+        }
+        @media (min-width: 768px) { .content-box { padding: 2.5rem; } }
+        
+        .nav-button, .ai-button, .top-corner-button {
+            background: var(--button-bg-light);
+            -webkit-backdrop-filter: blur(8px);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .nav-button, .ai-button {
+            border-radius: 16px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            color: var(--text-light);
+            text-align: center;
+        }
+        .nav-button:hover, .ai-button:hover {
+            background: var(--button-hover-bg-light);
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 12px 35px 0 rgba(0, 0, 0, 0.15);
+        }
+        .top-corner-button {
+            border-radius: 50%;
+            padding: 8px;
+        }
+        .top-corner-button:hover { 
+            transform: scale(1.1); 
+            background: var(--button-hover-bg-light);
+        }
+        .button-active { transform: scale(0.95) !important; }
+        
+        #homeLink { position: fixed; top: 1rem; left: 1rem; z-index: 1001; display: none; }
+        #top-right-controls { position: fixed; top: 1rem; right: 1rem; z-index: 1001; display: flex; gap: 0.5rem; }
+        #translate-dropdown {
+            position: absolute;
+            top: 3.5rem;
+            right: 0;
+            z-index: 1000;
+            background: var(--button-hover-bg-light);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+            padding: 0.5rem;
+            display: none;
+            max-height: 300px;
+            overflow-y: auto;
+            width: 150px;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        #translate-dropdown.dropdown-visible { display: block; opacity: 1; transform: translateY(0); }
+        #translate-dropdown button { display: block; width: 100%; padding: 0.5rem 1rem; text-align: left; background: none; border: none; color: var(--text-light); font-weight: 500; border-radius: 8px; cursor: pointer; }
+        #translate-dropdown button:hover { background-color: rgba(255, 255, 255, 0.2); }
+        
+        /* Dark Mode Styles */
+        body.dark-mode { background-color: var(--bg-dark); color: var(--text-dark); }
+        body.dark-mode .font-dancing { color: var(--primary-accent-dark); }
+        body.dark-mode .content-box { background-color: var(--content-box-bg-dark); border-color: rgba(255, 255, 255, 0.1); }
+        body.dark-mode .nav-button, body.dark-mode .ai-button, body.dark-mode .top-corner-button { background: var(--button-bg-dark); border-color: rgba(255, 255, 255, 0.2); color: var(--text-dark); }
+        body.dark-mode .nav-button:hover, body.dark-mode .ai-button:hover, body.dark-mode .top-corner-button:hover { background: var(--button-hover-bg-dark); }
+        body.dark-mode .text-gray-500, body.dark-mode .text-gray-600, body.dark-mode .text-gray-700 { color: #a1a1aa; }
+        body.dark-mode hr { border-color: rgba(255, 255, 255, 0.1); }
+        body.dark-mode .bg-white\/50 { background-color: rgba(40, 40, 40, 0.5); }
+        body.dark-mode .timeline-dot { background-color: var(--timeline-dot-dark); border-color: var(--bg-dark); }
+        body.dark-mode .text-blue-600 { color: #60a5fa; }
+        body.dark-mode #translate-dropdown { background: var(--button-hover-bg-dark); border-color: rgba(255, 255, 255, 0.2); }
+        body.dark-mode #translate-dropdown button { color: var(--text-dark); }
+        body.dark-mode #translate-dropdown button:hover { background-color: rgba(255, 255, 255, 0.1); }
+        body.dark-mode .skill-circle .bg-circle { stroke: rgba(255,255,255,0.1); }
+        
+        /* Skill Circle & Timeline Animation */
+        .skill-item { display: flex; flex-direction: column; align-items: center; text-align: center; }
+        .skill-circle { position: relative; width: 100px; height: 100px; margin-bottom: 0.75rem; display: flex; align-items: center; justify-content: center; }
+        @media (min-width: 768px) { .skill-circle { width: 120px; height: 120px; } }
+        .skill-circle svg { position: absolute; top: 0; left: 0; transform: rotate(-90deg); }
+        .skill-circle circle { fill: none; stroke-width: 8; stroke-linecap: round; }
+        .skill-circle .bg-circle { stroke: rgba(0,0,0,0.05); }
+        .skill-circle .progress-circle { stroke: url(#skill-gradient); transition: stroke-dashoffset 1s ease-out; }
+        .skill-level { font-family: 'Playfair Display', serif; font-size: 0.8rem; font-weight: 600; line-height: 1.2; }
+        @media (min-width: 768px) { .skill-level { font-size: 0.9rem; } }
+        
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        .timeline-entry { opacity: 0; }
+        .timeline-entry.is-visible { animation: slideDown 0.6s forwards ease-out; }
+
+        /* AI Modal */
+        #ai-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; display: none; align-items: center; justify-content: center; }
+        #ai-modal { background: var(--button-hover-bg-light); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.5); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1); padding: 1.5rem; width: 90%; max-width: 400px; }
+        body.dark-mode #ai-modal { background: var(--button-hover-bg-dark); border-color: rgba(255, 255, 255, 0.2); }
+        .spinner { border: 4px solid rgba(0, 0, 0, 0.1); width: 24px; height: 24px; border-radius: 50%; border-left-color: #2c2c2c; animation: spin 1s ease infinite; }
+        body.dark-mode .spinner { border-left-color: #f0f0f0; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- SVG Definitions for gradients -->
+    <svg width="0" height="0" style="position:absolute">
+      <defs>
+        <linearGradient id="skill-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#EC4899;stop-opacity:1" />
+        </linearGradient>
+      </defs>
+    </svg>
+
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Navigation Controls -->
+    <a href="#" id="homeLink" class="top-corner-button" aria-label="Go to overview">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+    </a>
+    
+    <div id="top-right-controls">
+        <div class="relative">
+            <button id="translate-button" class="top-corner-button" aria-label="Change language">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+            </button>
+            <div id="translate-dropdown"></div>
+        </div>
+        <button id="theme-toggle" class="top-corner-button" aria-label="Toggle dark/light theme">
+            <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+        </button>
+    </div>
+    
+    <main>
+        <!-- Landing Page -->
+        <section id="landing" class="page active text-center">
+            <div class="flex flex-col items-center justify-center flex-grow">
+                 <header class="w-full max-w-3xl text-center relative">
+                    <h1 class="font-dancing text-7xl sm:text-8xl md:text-9xl" data-translate="landing_title">Portfolio</h1>
+                    <div class="w-24 h-px bg-gray-300 mx-auto my-6"></div>
+                    <p class="text-lg md:text-xl font-playfair" data-translate="landing_name">Deeptanu Karmakar</p>
+                    <p class="text-sm md:text-md text-gray-500" data-translate="landing_subtitle">Undergraduate Student</p>
+                    <button onclick="navigateTo('overview')" class="mt-12 nav-button" data-translate="landing_enter">Enter</button>
+                 </header>
+            </div>
+            <footer class="w-full text-center text-gray-500 text-xs font-light pt-8 pb-2">
+                <p data-translate="footer_text">©️ Deeptanu K.</p>
+            </footer>
+        </section>
+
+        <!-- Overview Page -->
+        <section id="overview" class="page">
+            <div class="w-full max-w-3xl">
+                <div class="text-center mb-8 md:mb-12">
+                    <h1 class="font-dancing text-5xl md:text-6xl" data-translate="overview_title">Portfolio</h1>
+                    <h2 class="font-playfair text-2xl md:text-3xl tracking-widest" data-translate="overview_subtitle">OVERVIEW</h2>
+                </div>
+                <nav class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4" aria-label="Main portfolio navigation">
+                    <button onclick="navigateTo('about')" class="nav-button" data-translate="nav_about">About Me</button>
+                    <button onclick="navigateTo('experience')" class="nav-button" data-translate="nav_experience">Work Experience</button>
+                    <button onclick="navigateTo('skills')" class="nav-button" data-translate="nav_skills">Personal Skills</button>
+                    <button onclick="navigateTo('projects')" class="nav-button" data-translate="nav_projects">Projects</button>
+                    <button onclick="navigateTo('vision')" class="nav-button" data-translate="nav_vision">Vision</button>
+                    <button onclick="navigateTo('education')" class="nav-button" data-translate="nav_education">Education</button>
+                    <button onclick="navigateTo('awards')" class="nav-button" data-translate="nav_awards">Awards & Recognition</button>
+                    <button onclick="navigateTo('process')" class="nav-button" data-translate="nav_process">Creative Process</button>
+                    <div class="col-span-2 md:col-span-1 md:col-start-2 flex justify-center">
+                        <button onclick="navigateTo('contact')" class="nav-button w-full md:w-auto" data-translate="nav_contact">Contact</button>
+                    </div>
+                </nav>
+            </div>
+        </section>
+
+        <!-- About Page -->
+        <section id="about" class="page">
+            <div class="content-box text-center md:text-left">
+                <div class="flex flex-col md:flex-row items-center gap-6 md:gap-8">
+                    <div class="relative w-32 h-32 md:w-36 md:h-36 flex-shrink-0">
+                        <img id="profile-pic" src="Profile-pic.svg" alt="https://placehold.co/150x150/A7B89D/FDFBF5?text=DK" class="w-full h-full rounded-full object-cover border-4 border-white shadow-lg">
+                    </div>
+                    <div>
+                        <h1 class="font-dancing text-4xl md:text-5xl mb-4" data-translate="about_title">About Me</h1>
+                        <p class="text-gray-600 leading-relaxed" data-translate="about_text" id="about-text-content">Passionate mathematics honors graduate with a 5.63 CGPA. Strong in R programming for data wrangling, statistical modeling, and data visualization. Proficient in front-end web development, video editing, and various multimedia tools. Recognized leader with excellent communication skills and proven creative thinking through writing, painting, and sculpting.</p>
+                        <button id="rewrite-button" class="ai-button mt-4">✨ Rewrite with AI</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Vision Page -->
+        <section id="vision" class="page">
+            <div class="content-box">
+                 <h1 class="font-dancing text-4xl md:text-5xl text-center mb-8" data-translate="vision_title">Vision</h1>
+                 <div class="flex flex-col">
+                    <div class="bg-white/50 p-4 md:p-6 rounded-xl shadow-sm">
+                        <p class="text-gray-600 text-center md:text-left leading-relaxed" data-translate="vision_text">To leverage analytical capabilities and creative skills to drive innovative solutions through continuous learning. To seek challenging roles where I can apply my proficiency in data analysis, web development, and multimedia production. I aim to contribute to engaging projects, deliver polished and timely results, and continuously expand my skillset.</p>
+                    </div>
+                 </div>
+            </div>
+        </section>
+        
+        <!-- Education Page -->
+        <section id="education" class="page page-scrollable">
+            <div class="content-box w-full">
+                <h1 class="font-dancing text-4xl md:text-5xl text-center mb-12" data-translate="education_title">Educational Background</h1>
+                <div class="relative border-l-2 border-gray-200 ml-3 pl-6 space-y-10">
+                    <div class="relative timeline-entry"><div class="absolute -left-[34px] top-1.5 w-4 h-4 rounded-full border-4 border-white timeline-dot"></div><p class="font-bold text-lg">2023 - Current</p><p class="font-semibold" data-translate="education_degree">Bachelor of Science in Mathematics</p><p class="text-sm text-gray-500" data-translate="education_college">P.G.D.A.V. College, University Of Delhi (CGPA: 5.63)</p></div>
+                    <div class="relative timeline-entry"><div class="absolute -left-[34px] top-1.5 w-4 h-4 rounded-full border-4 border-white timeline-dot"></div><p class="font-bold text-lg">2020 - 2021</p><p class="font-semibold" data-translate="education_xii">Class XII (Science)</p><p class="text-sm text-gray-500" data-translate="education_school">Umakanta Academy English Medium, Agartala (71.2%)</p></div>
+                    <div class="relative timeline-entry"><div class="absolute -left-[34px] top-1.5 w-4 h-4 rounded-full border-4 border-white timeline-dot"></div><p class="font-bold text-lg">2020</p><p class="font-semibold" data-translate="education_x">Class X</p><p class="text-sm text-gray-500" data-translate="education_school">Umakanta Academy English Medium, Agartala (87.4%)</p></div>
+                </div>
+                <hr class="my-8 border-gray-200/80">
+                <h2 class="font-dancing text-3xl md:text-4xl text-center mb-8" data-translate="languages_title">Languages</h2>
+                <div class="flex flex-wrap justify-center gap-x-4 gap-y-8 md:gap-x-8">
+                    <div class="skill-item" data-percent="83"><div class="skill-circle"><svg viewBox="0 0 120 120"><circle class="bg-circle" cx="60" cy="60" r="56"></circle><circle class="progress-circle" cx="60" cy="60" r="56"></circle></svg><span class="skill-level" data-translate="lang_eng_level">Advanced (C1)</span></div><p class="font-semibold text-sm md:text-base mt-2" data-translate="lang_eng">English</p></div>
+                    <div class="skill-item" data-percent="100"><div class="skill-circle"><svg viewBox="0 0 120 120"><circle class="bg-circle" cx="60" cy="60" r="56"></circle><circle class="progress-circle" cx="60" cy="60" r="56"></circle></svg><span class="skill-level" data-translate="lang_ben_level">Bilingual (C2)</span></div><p class="font-semibold text-sm md:text-base mt-2" data-translate="lang_ben">Bengali</p></div>
+                    <div class="skill-item" data-percent="66"><div class="skill-circle"><svg viewBox="0 0 120 120"><circle class="bg-circle" cx="60" cy="60" r="56"></circle><circle class="progress-circle" cx="60" cy="60" r="56"></circle></svg><span class="skill-level" data-translate="lang_hin_level">Upper Intermediate (B2)</span></div><p class="font-semibold text-sm md:text-base mt-2" data-translate="lang_hin">Hindi</p></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Work Experience Page -->
+        <section id="experience" class="page page-scrollable">
+            <div class="content-box w-full">
+                <h1 class="font-dancing text-4xl md:text-5xl text-center mb-12" data-translate="experience_title">Work Experience</h1>
+                <div class="relative border-l-2 border-gray-200 ml-3 pl-6 space-y-10">
+                    <div class="relative timeline-entry"><div class="absolute -left-[34px] top-1.5 w-4 h-4 rounded-full border-4 border-white timeline-dot"></div><p class="text-sm text-gray-500">July 2024 - Current</p><h3 class="font-bold text-xl" data-translate="exp1_title">Co-Head, Technology Department</h3><p class="font-semibold text-gray-700" data-translate="exp1_company">P.G.D.A.V. College, University Of Delhi</p></div>
+                    <div class="relative timeline-entry"><div class="absolute -left-[34px] top-1.5 w-4 h-4 rounded-full border-4 border-white timeline-dot"></div><p class="text-sm text-gray-500">April 2025 - Current</p><h3 class="font-bold text-xl" data-translate="exp2_title">Graphic Designer Intern</h3><p class="font-semibold text-gray-700" data-translate="exp2_company">Delhi Anime Club</p></div>
+                    <div class="relative timeline-entry"><div class="absolute -left-[34px] top-1.5 w-4 h-4 rounded-full border-4 border-white timeline-dot"></div><p class="text-sm text-gray-500">Nov 2024 - Mar 2025</p><h3 class="font-bold text-xl" data-translate="exp3_title">Design Editor (E-Newsletter: 'अनुरनन')</h3><p class="font-semibold text-gray-700" data-translate="exp3_company">P.G.D.A.V. College, University Of Delhi</p></div>
+                    <div class="relative timeline-entry"><div class="absolute -left-[34px] top-1.5 w-4 h-4 rounded-full border-4 border-white timeline-dot"></div><p class="text-sm text-gray-500">Nov 2024 - Mar 2025</p><h3 class="font-bold text-xl" data-translate="exp4_title">Graphic Designer</h3><p class="font-semibold text-gray-700" data-translate="exp4_company">Spandan'24, Deshbandhu College</p></div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Awards Page -->
+        <section id="awards" class="page">
+            <div class="content-box">
+                <h1 class="font-dancing text-4xl md:text-5xl text-center mb-8" data-translate="awards_title">Awards & Recognition</h1>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-center">
+                    <div class="bg-white/50 p-4 md:p-6 rounded-xl shadow-sm"><h3 class="font-bold text-lg" data-translate="award1_title">National Means-Cum-Merit Scholarship</h3><p class="text-sm text-gray-600" data-translate="award1_desc">Awarded for securing 4th Rank in West Tripura District.</p></div>
+                    <div class="bg-white/50 p-4 md:p-6 rounded-xl shadow-sm"><h3 class="font-bold text-lg" data-translate="award2_title">Letter of Appreciation from PM Modi</h3><p class="text-sm text-gray-600" data-translate="award2_desc">For participation in 'Pariksha Pe Charcha'.</p></div>
+                    <div class="bg-white/50 p-4 md:p-6 rounded-xl shadow-sm"><h3 class="font-bold text-lg" data-translate="award3_title">Creators of Metaverse Program</h3><p class="text-sm text-gray-600" data-translate="award3_desc">Phase 1 Completion (AICTE-Meta-1M1B initiative).</p></div>
+                    <div class="bg-white/50 p-4 md:p-6 rounded-xl shadow-sm"><h3 class="font-bold text-lg" data-translate="award4_title">Certifications</h3><p class="text-sm text-gray-600" data-translate="award4_desc">HarvardX: CS50's Intro to CS & Google Data Analysis</p></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Skills Page -->
+        <section id="skills" class="page page-scrollable">
+            <div class="content-box">
+                <h1 class="font-dancing text-4xl md:text-5xl text-center mb-12" data-translate="skills_title">Personal Skills</h1>
+                <div class="flex flex-wrap justify-center gap-x-4 gap-y-8 md:gap-x-8">
+                    <div class="skill-item" data-percent="25"><div class="skill-circle"><svg viewBox="0 0 120 120"><circle class="bg-circle" cx="60" cy="60" r="56"></circle><circle class="progress-circle" cx="60" cy="60" r="56"></circle></svg><span class="skill-level" data-translate="skill_basic">Basic</span></div><p class="font-semibold text-sm md:text-base mt-2" data-translate="skill_r">R Programming</p></div>
+                    <div class="skill-item" data-percent="25"><div class="skill-circle"><svg viewBox="0 0 120 120"><circle class="bg-circle" cx="60" cy="60" r="56"></circle><circle class="progress-circle" cx="60" cy="60" r="56"></circle></svg><span class="skill-level" data-translate="skill_basic">Basic</span></div><p class="font-semibold text-sm md:text-base mt-2" data-translate="skill_web">Web Design</p></div>
+                    <div class="skill-item" data-percent="50"><div class="skill-circle"><svg viewBox="0 0 120 120"><circle class="bg-circle" cx="60" cy="60" r="56"></circle><circle class="progress-circle" cx="60" cy="60" r="56"></circle></svg><span class="skill-level" data-translate="skill_intermediate">Intermediate</span></div><p class="font-semibold text-sm md:text-base mt-2" data-translate="skill_video">Video Editing</p></div>
+                    <div class="skill-item" data-percent="75"><div class="skill-circle"><svg viewBox="0 0 120 120"><circle class="bg-circle" cx="60" cy="60" r="56"></circle><circle class="progress-circle" cx="60" cy="60" r="56"></circle></svg><span class="skill-level" data-translate="skill_advance">Advance</span></div><p class="font-semibold text-sm md:text-base mt-2" data-translate="skill_graphic">Graphic Design</p></div>
+                    <div class="skill-item" data-percent="50"><div class="skill-circle"><svg viewBox="0 0 120 120"><circle class="bg-circle" cx="60" cy="60" r="56"></circle><circle class="progress-circle" cx="60" cy="60" r="56"></circle></svg><span class="skill-level" data-translate="skill_intermediate">Intermediate</span></div><p class="font-semibold text-sm md:text-base mt-2" data-translate="skill_data">Data Analysis</p></div>
+                    <div class="skill-item" data-percent="100"><div class="skill-circle"><svg viewBox="0 0 120 120"><circle class="bg-circle" cx="60" cy="60" r="56"></circle><circle class="progress-circle" cx="60" cy="60" r="56"></circle></svg><span class="skill-level" data-translate="skill_expert">Expert</span></div><p class="font-semibold text-sm md:text-base mt-2" data-translate="skill_creative">Creative Arts</p></div>
+                    <div class="skill-item" data-percent="50"><div class="skill-circle"><svg viewBox="0 0 120 120"><circle class="bg-circle" cx="60" cy="60" r="56"></circle><circle class="progress-circle" cx="60" cy="60" r="56"></circle></svg><span class="skill-level" data-translate="skill_intermediate">Intermediate</span></div><p class="font-semibold text-sm md:text-base mt-2" data-translate="skill_leadership">Leadership</p></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Creative Process Page -->
+        <section id="process" class="page">
+            <div class="content-box">
+                 <h1 class="font-dancing text-4xl md:text-5xl text-center mb-12" data-translate="process_title">Creative Process</h1>
+                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 text-center">
+                    <div class="bg-white/50 p-4 md:p-6 rounded-xl shadow-sm"><h3 class="font-playfair text-xl mb-2" data-translate="process1_title">1. Ideation & Scripting</h3><p class="text-sm text-gray-600" data-translate="process1_desc">The process begins with creative writing and video scripting to build a strong narrative foundation for any project, whether it's a video or a design campaign.</p></div>
+                    <div class="bg-white/50 p-4 md:p-6 rounded-xl shadow-sm"><h3 class="font-playfair text-xl mb-2" data-translate="process2_title">2. Design & Development</h3><p class="text-sm text-gray-600" data-translate="process2_desc">Leveraging a keen eye for detail, I develop graphics and web layouts using tools like Canva and front-end technologies. For video, I handle the entire pipeline from raw videography to final edits.</p></div>
+                    <div class="bg-white/50 p-4 md:p-6 rounded-xl shadow-sm"><h3 class="font-playfair text-xl mb-2" data-translate="process3_title">3. Execution & Delivery</h3><p class="text-sm text-gray-600" data-translate="process3_desc">Focus on creating polished, cohesive marketing collateral that adheres to brand guidelines. Committed to timely delivery to ensure client satisfaction and project success.</p></div>
+                 </div>
+            </div>
+        </section>
+        
+        <!-- Projects Page -->
+        <section id="projects" class="page page-scrollable">
+            <div class="content-box">
+                <h1 class="font-dancing text-4xl md:text-5xl text-center mb-12" data-translate="projects_title">Project Portfolio</h1>
+                <div class="space-y-12">
+                    <div class="flex flex-col md:flex-row gap-6 md:gap-8 items-center"><div class="md:w-1/2 w-full order-2 md:order-1"><h2 class="font-playfair text-2xl font-bold" data-translate="project1_title">Content & Social Media</h2><h3 class="font-semibold mt-1 text-gray-700" data-translate="project1_client">CLIENT: P.G.D.A.V. College</h3><p class="mt-2 text-gray-600" data-translate="project1_desc">As Co-Head of the Technology Department of C.A.D.E.C. , I developed engaging video content, created graphics for the annual magazine and social media, and managed the Instagram.</p></div><div class="md:w-1/2 w-full grid grid-cols-2 gap-4 order-1 md:order-2"><img src="https://placehold.co/400x400/DDE2C6/3A3A3A?text=ADDING+SOON" alt="A sample graphic for a college project" class="rounded-lg shadow-md w-full h-full object-cover aspect-square"><img src="https://placehold.co/400x400/C9D1B8/3A3A3A?text=ADDING+SOON" alt="A still frame from a video project" class="rounded-lg shadow-md w-full h-full object-cover aspect-square"></div></div>
+                    <hr class="border-gray-200/80">
+                    <div class="flex flex-col md:flex-row-reverse gap-6 md:gap-8 items-center"><div class="md:w-1/2 w-full"><h2 class="font-playfair text-2xl font-bold" data-translate="project2_title">Graphic Design</h2><h3 class="font-semibold mt-1 text-gray-700" data-translate="project2_client">CLIENT: Delhi Anime Club</h3><p class="mt-2 text-gray-600" data-translate="project2_desc">As a Graphic Designer Intern, I assist in creating cohesive marketing collateral. My role involved developing a keen eye for detail and delivering polished designs that adhered to brand guidelines.</p></div><div class="md:w-1/2 w-full grid grid-cols-2 gap-4"><img src="https://placehold.co/400x400/EAECCC/3A3A3A?text=ADDING+SOON" alt="An anime-themed design graphic" class="rounded-lg shadow-md w-full h-full object-cover aspect-square"><img src="https://placehold.co/400x400/D9E1BE/3A3A3A?text=ADDING+SOON" alt="A graphic for a marketing campaign" class="rounded-lg shadow-md w-full h-full object-cover aspect-square"></div></div>
+                    <hr class="border-gray-200/80">
+                    <div class="flex flex-col md:flex-row gap-6 md:gap-8 items-center"><div class="md:w-1/2 w-full order-2 md:order-1"><h2 class="font-playfair text-2xl font-bold" data-translate="project3_title">Social Media Graphics</h2><h3 class="font-semibold mt-1 text-gray-700" data-translate="project3_client">CLIENT: Spandan'24, Deshbandhu College</h3><p class="mt-2 text-gray-600" data-translate="project3_desc">For the Spandan'24 Session, I served as the Graphic Designer for their Instagram presence, creating vibrant visuals to promote the event and engage with the student community.</p></div><div class="md:w-1/2 w-full grid grid-cols-2 gap-4 order-1 md:order-2"><img src="https://placehold.co/400x400/CFD8B7/3A3A3A?text=ADDING+SOON" alt="A graphic for the Spandan'24 festival" class="rounded-lg shadow-md w-full h-full object-cover aspect-square"><img src="https://placehold.co/400x400/C1CCAB/3A3A3A?text=ADDING+SOON" alt="A sample Instagram post design" class="rounded-lg shadow-md w-full h-full object-cover aspect-square"></div></div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Contact Page -->
+        <section id="contact" class="page">
+            <div class="content-box text-center">
+                <h1 class="font-dancing text-5xl md:text-6xl" data-translate="contact_title">Thank You</h1>
+                <h2 class="font-playfair text-2xl md:text-3xl tracking-widest mt-2 mb-8" data-translate="contact_subtitle">CONTACT INFORMATION</h2>
+                <div class="space-y-3 text-base md:text-lg">
+                    <p><strong>Mobile:</strong> <a href="tel:+919077835057" class="hover:underline">+91 9077835057</a></p>
+                    <p><strong>Email:</strong> <a href="mailto:deeptanukarmakar01@gmail.com" class="hover:underline">deeptanukarmakar01@gmail.com</a></p>
+                    <p><strong>LinkedIn:</strong> <a href="https://www.linkedin.com/in/deeptanu-karmakar/" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">linkedin.com/in/deeptanu-karmakar</a></p>
+                    <p><strong>Location:</strong> New Delhi, India 110065</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- AI Rewrite Modal -->
+    <div id="ai-modal-overlay">
+        <div id="ai-modal" role="dialog" aria-modal="true" aria-labelledby="ai-modal-title">
+            <h3 id="ai-modal-title" class="font-playfair text-xl mb-4 text-center">Choose a Tone</h3>
+            <div class="grid grid-cols-2 gap-2">
+                <button class="ai-button" onclick="rewriteWithGemini('More Formal')">Formal</button>
+                <button class="ai-button" onclick="rewriteWithGemini('More Creative')">Creative</button>
+                <button class="ai-button" onclick="rewriteWithGemini('More Concise')">Concise</button>
+                <button class="ai-button" onclick="rewriteWithGemini('More Poetic')">Poetic</button>
+            </div>
+            <div class="text-center mt-4">
+                <button id="ai-modal-close" class="text-sm text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-white transition-colors">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+          try {
+            // --- DATA & CONFIGURATION ---
+            
+            // Complete translation data object
+            const translations = {
+                en: { landing_title: "Portfolio", landing_name: "Deeptanu Karmakar", landing_subtitle: "Undergraduate Student", landing_enter: "Enter", footer_text: "©️ Deeptanu K.", overview_title: "Portfolio", overview_subtitle: "OVERVIEW", nav_about: "About Me", nav_experience: "Work Experience", nav_skills: "Personal Skills", nav_projects: "Projects", nav_vision: "Vision", nav_education: "Education", nav_awards: "Awards & Recognition", nav_process: "Creative Process", nav_contact: "Contact", about_title: "About Me", about_text: "Passionate mathematics honors graduate with a 5.63 CGPA. Strong in R programming for data wrangling, statistical modeling, and data visualization. Proficient in front-end web development, video editing, and various multimedia tools. Recognized leader with excellent communication skills and proven creative thinking through writing, painting, and sculpting.", vision_title: "Vision", vision_text: "To leverage analytical capabilities and creative skills to drive innovative solutions through continuous learning. To seek challenging roles where I can apply my proficiency in data analysis, web development, and multimedia production. I aim to contribute to engaging projects, deliver polished and timely results, and continuously expand my skillset.", education_title: "Educational Background", education_degree: "Bachelor of Science in Mathematics", education_college: "P.G.D.A.V. College, University Of Delhi (CGPA: 5.63)", education_xii: "Class XII (Science)", education_x: "Class X", education_school: "Umakanta Academy English Medium, Agartala", experience_title: "Work Experience", exp1_title: "Co-Head, Technology Department", exp1_company: "P.G.D.A.V. College, University Of Delhi", exp2_title: "Graphic Designer Intern", exp2_company: "Delhi Anime Club", exp3_title: "Design Editor (E-Newsletter: 'अनुरनन')", exp3_company: "P.G.D.A.V. College, University Of Delhi", exp4_title: "Graphic Designer", exp4_company: "Spandan'24, Deshbandhu College", awards_title: "Awards & Recognition", award1_title: "National Means-Cum-Merit Scholarship", award1_desc: "Awarded for securing 4th Rank in West Tripura District.", award2_title: "Letter of Appreciation from PM Modi", award2_desc: "For participation in 'Pariksha Pe Charcha'.", award3_title: "Creators of Metaverse Program", award3_desc: "Phase 1 Completion (AICTE-Meta-1M1B initiative).", award4_title: "Certifications", award4_desc: "HarvardX: CS50's Intro to CS & Google Data Analysis", skills_title: "Personal Skills", skill_basic: "Basic", skill_intermediate: "Intermediate", skill_advance: "Advance", skill_expert: "Expert", skill_r: "R Programming", skill_web: "Web Design", skill_video: "Video Editing", skill_graphic: "Graphic Design", skill_data: "Data Analysis", skill_creative: "Creative Arts", skill_leadership: "Leadership", process_title: "Creative Process", process1_title: "1. Ideation & Scripting", process1_desc: "The process begins with creative writing and video scripting to build a strong narrative foundation for any project, whether it's a video or a design campaign.", process2_title: "2. Design & Development", process2_desc: "Leveraging a keen eye for detail, I develop graphics and web layouts using tools like Canva and front-end technologies. For video, I handle the entire pipeline from raw videography to final edits.", process3_title: "3. Execution & Delivery", process3_desc: "Focus on creating polished, cohesive marketing collateral that adheres to brand guidelines. Committed to timely delivery to ensure client satisfaction and project success.", projects_title: "Project Portfolio", project1_title: "Content & Social Media", project1_client: "CLIENT: P.G.D.A.V. College", project1_desc: "As Co-Head of the Technology Department, I developed engaging video content, created graphics for the annual magazine and social media, and managed the Instagram for the E-Newsletter 'अनुरनन'.", project2_title: "Marketing & Design", project2_client: "CLIENT: Delhi Anime Club", project2_desc: "As a Graphic Designer Intern, I assisted in creating cohesive marketing collateral. My role involved developing a keen eye for detail and delivering polished designs that adhered to brand guidelines.", project3_title: "Social Media Graphics", project3_client: "CLIENT: Spandan'24, Deshbandhu College", project3_desc: "For the Spandan'24 cultural festival, I served as the Graphic Designer for their Instagram presence, creating vibrant visuals to promote the event and engage with the student community.", contact_title: "Thank You", contact_subtitle: "CONTACT INFORMATION", languages_title: "Languages", lang_eng: "English", lang_ben: "Bengali", lang_hin: "Hindi", lang_eng_level: "Advanced (C1)", lang_ben_level: "Bilingual (C2)", lang_hin_level: "Upper Intermediate (B2)" },
+                bn: { landing_title: "পোর্টফোলিও", landing_name: "দীপ্তানু কর্মকার", landing_subtitle: "স্নাতক ছাত্র", landing_enter: "প্রবেশ করুন", footer_text: "©️ দীপ্তানু কে.", overview_title: "পোর্টফোলিও", overview_subtitle: "একনজরে", nav_about: "আমার সম্পর্কে", nav_experience: "কাজের অভিজ্ঞতা", nav_skills: "ব্যক্তিগত দক্ষতা", nav_projects: "প্রকল্প", nav_vision: "দৃষ্টিভঙ্গি", nav_education: "শিক্ষা", nav_awards: "পুরস্কার ও স্বীকৃতি", nav_process: "সৃজনশীল প্রক্রিয়া", nav_contact: "যোগাযোগ", about_title: "আমার সম্পর্কে", about_text: "৫.৬৩ সিজিপিএ সহ গণিতে স্নাতক। ডেটা বিশ্লেষণ, পরিসংখ্যান মডেলিং এবং ডেটা ভিজ্যুয়ালাইজেশনের জন্য আর প্রোগ্রামিংয়ে দক্ষ। ফ্রন্ট-এন্ড ওয়েব ডেভেলপমেন্ট, ভিডিও এডিটিং এবং বিভিন্ন মাল্টিমিডিয়া টুলে পারদর্শী। লেখা, চিত্রকলা এবং ভাস্কর্যের মাধ্যমে সৃজনশীল চিন্তাভাবনার প্রমাণিত ক্ষমতা।", vision_title: "দৃষ্টিভঙ্গি", vision_text: "ক্রমাগত শেখার মাধ্যমে উদ্ভাবনী সমাধান চালনার জন্য বিশ্লেষণাত্মক ক্ষমতা এবং সৃজনশীল দক্ষতা ব্যবহার করা। ডেটা বিশ্লেষণ, ওয়েব ডেভেলপমেন্ট এবং মাল্টিমিডিয়া উৎপাদনে আমার দক্ষতা প্রয়োগ করতে পারি এমন চ্যালেঞ্জিং ভূমিকার সন্ধান করছি। আমি আকর্ষক প্রকল্পে অবদান রাখতে, সময়মত পালিশ করা ফলাফল প্রদান করতে এবং ক্রমাগত আমার দক্ষতা প্রসারিত করতে চাই।", education_title: "শিক্ষাগত পটভূমি", education_degree: "গণিতে বিজ্ঞানে স্নাতক", education_college: "পি.জি.ডি.এ.ভি. কলেজ, দিল্লি বিশ্ববিদ্যালয় (সিজিপিএ: ৫.৬৩)", education_xii: "দ্বাদশ শ্রেণী (বিজ্ঞান)", education_x: "দশম শ্রেণী", education_school: "উমাকান্ত একাডেমী ইংলিশ মিডিয়াম, আগরতলা", experience_title: "কাজের অভিজ্ঞতা", exp1_title: "সহ-প্রধান, প্রযুক্তি বিভাগ", exp1_company: "পি.জি.ডি.এ.ভি. কলেজ, দিল্লি বিশ্ববিদ্যালয়", exp2_title: "গ্রাফিক ডিজাইনার ইন্টার্ন", exp2_company: "দিল্লি অ্যানিমে ক্লাব", exp3_title: "ডিজাইন এডিটর (ই-নিউজলেটার: 'अनुरनन')", exp3_company: "পি.জি.ডি.এ.ভি. কলেজ, দিল্লি বিশ্ববিদ্যালয়", exp4_title: "গ্রাফিক ডিজাইনার", exp4_company: "স্পন্দন'২৪, দেশবন্ধু কলেজ", awards_title: "পুরস্কার ও স্বীকৃতি", award1_title: "জাতীয় উপায়-কাম-মেধা বৃত্তি", award1_desc: "পশ্চিম ত্রিপুরা জেলায় চতুর্থ স্থান অধিকার করার জন্য পুরস্কৃত।", award2_title: "প্রধানমন্ত্রী মোদীর কাছ থেকে প্রশংসাপত্র", award2_desc: "'परीक्षा पे चर्चा' অনুষ্ঠানে অংশগ্রহণের জন্য।", award3_title: "মেটাভার্স প্রোগ্রামের নির্মাতা", award3_desc: "প্রথম ধাপ সম্পন্ন (AICTE-Meta-1M1B উদ্যোগ)।", award4_title: "সার্টিফিকেশন", award4_desc: "হার্ভার্ডএক্স: CS50'র কম্পিউটার বিজ্ঞানের ভূমিকা এবং গুগল ডেটা অ্যানালাইসিস", skills_title: "ব্যক্তিগত দক্ষতা", skill_basic: "মৌলিক", skill_intermediate: "মধ্যবর্তী", skill_advance: "উন্নত", skill_expert: "বিশেষজ্ঞ", skill_r: "আর প্রোগ্রামিং", skill_web: "ওয়েব ডিজাইন", skill_video: "ভিডিও এডিটিং", skill_graphic: "গ্রাফিক ডিজাইন", skill_data: "ডেটা বিশ্লেষণ", skill_creative: "সৃজনশীল শিল্প", skill_leadership: "নেতৃত্ব", process_title: "সৃজনশীল প্রক্রিয়া", process1_title: "১. ধারণা এবং স্ক্রিপ্টিং", process1_desc: "প্রক্রিয়াটি সৃজনশীল লেখা এবং ভিডিও স্ক্রিপ্টিং দিয়ে শুরু হয়, যা কোনও প্রকল্পের জন্য একটি শক্তিশালী আখ্যান ভিত্তি তৈরি করে, তা ভিডিও হোক বা ডিজাইন প্রচারাভিযান।", process2_title: "২. ডিজাইন এবং উন্নয়ন", process2_desc: "বিস্তারিতের প্রতি গভীর মনোযোগ দিয়ে, আমি ক্যানভা এবং ফ্রন্ট-এন্ড প্রযুক্তির মতো সরঞ্জাম ব্যবহার করে গ্রাফিক্স এবং ওয়েব লেআউট তৈরি করি। ভিডিওর জন্য, আমি কাঁচা ভিডিওগ্রাফি থেকে চূড়ান্ত সম্পাদনা পর্যন্ত পুরো পাইপলাইন পরিচালনা করি।", process3_title: "৩. সম্পাদন এবং বিতরণ", process3_desc: "ব্র্যান্ড নির্দেশিকা মেনে চলে এমন পালিশ করা, সুসংহত বিপণন সামগ্রী তৈরিতে মনোযোগ দিন। ক্লায়েন্টের সন্তুষ্টি এবং প্রকল্পের সাফল্য নিশ্চিত করতে সময়মত বিতরণে প্রতিশ্রুতিবদ্ধ।", projects_title: "প্রকল্প পোর্টফোলিও", project1_title: "বিষয়বস্তু এবং সামাজিক মিডিয়া", project1_client: "ক্লায়েন্ট: পি.জি.ডি.এ.ভি. কলেজ", project1_desc: "প্রযুক্তি বিভাগের সহ-প্রধান হিসাবে, আমি আকর্ষণীয় ভিডিও সামগ্রী তৈরি করেছি, বার্ষিক পত্রিকা এবং সামাজিক মিডিয়ার জন্য গ্রাফিক্স তৈরি করেছি এবং ই-নিউজলেটার 'अनुरनन'-এর জন্য ইনস্টাগ্রাম পরিচালনা করেছি।", project2_title: "বিপণন এবং ডিজাইন", project2_client: "ক্লায়েন্ট: দিল্লি অ্যানিমে ক্লাব", project2_desc: "গ্রাফিক ডিজাইনার ইন্টার্ন হিসাবে, আমি সুসংহত বিপণন সামগ্রী তৈরিতে সহায়তা করেছি। আমার ভূমিকার মধ্যে বিস্তারিতের প্রতি গভীর মনোযোগ দেওয়া এবং ব্র্যান্ড নির্দেশিকা মেনে চলে এমন পালিশ করা ডিজাইন সরবরাহ করা অন্তর্ভুক্ত ছিল।", project3_title: "সোশ্যাল মিডিয়া গ্রাফিক্স", project3_client: "ক্লায়েন্ট: স্পন্দন'২৪, দেশবন্ধু কলেজ", project3_desc: "স্পন্দন'২৪ সাংস্কৃতিক উৎসবের জন্য, আমি তাদের ইনস্টাগ্রাম উপস্থিতির জন্য গ্রাফিক ডিজাইনার হিসাবে কাজ করেছি, ইভেন্টটি প্রচার করতে এবং ছাত্র সম্প্রদায়ের সাথে জড়িত হতে প্রাণবন্ত ভিজ্যুয়াল তৈরি করেছি।", contact_title: "ধন্যবাদ", contact_subtitle: "যোগাযোগের তথ্য", languages_title: "ভাষা", lang_eng: "ইংরেজি", lang_ben: "বাংলা", lang_hin: "হিন্দি", lang_eng_level: "উন্নত (C1)", lang_ben_level: "দ্বিভাষিক (C2)", lang_hin_level: "উচ্চ মধ্যবর্তী (B2)" },
+                hi: { landing_title: "पोर्टफोलियो", landing_name: "दीप्तानु करमाकर", landing_subtitle: "स्नातक छात्र", landing_enter: "प्रवेश करें", footer_text: "©️ दीप्तानु के.", overview_title: "पोर्टफोलियो", overview_subtitle: "अवलोकन", nav_about: "मेरे बारे में", nav_experience: "कार्य अनुभव", nav_skills: "व्यक्तिगत कौशल", nav_projects: "परियोजनाएं", nav_vision: "दृष्टिकोण", nav_education: "शिक्षा", nav_awards: "पुरस्कार और मान्यता", nav_process: "रचनात्मक प्रक्रिया", nav_contact: "संपर्क", about_title: "मेरे बारे में", about_text: "5.63 सीजीपीए के साथ गणित में स्नातक। डेटा विश्लेषण, सांख्यिकीय मॉडलिंग और डेटा विज़ुअलाइज़ेशन के लिए आर प्रोग्रामिंग में मजबूत। फ्रंट-एंड वेब डेवलपमेंट, वीडियो एडिटिंग और विभिन्न मल्टीमीडिया टूल में कुशल। लेखन, पेंटिंग और मूर्तिकला के माध्यम से सिद्ध रचनात्मक सोच।", vision_title: "दृष्टिकोण", vision_text: "निरंतर सीखने के माध्यम से नवीन समाधान चलाने के लिए विश्लेषणात्मक क्षमताओं और रचनात्मक कौशल का लाभ उठाना। चुनौतीपूर्ण भूमिकाओं की तलाश है जहाँ मैं डेटा विश्लेषण, वेब विकास और मल्टीमीडिया उत्पादन में अपनी दक्षता लागू कर सकूँ। मेरा लक्ष्य आकर्षक परियोजनाओं में योगदान देना, समय पर पॉलिश किए गए परिणाम देना और अपने कौशल का लगातार विस्तार करना है।", education_title: "शैक्षिक पृष्ठभूमि", education_degree: "गणित में विज्ञान स्नातक", education_college: "पी.जी.डी.ए.वी. कॉलेज, दिल्ली विश्वविद्यालय (सीजीपीए: 5.63)", education_xii: "कक्षा XII (विज्ञान)", education_x: "कक्षा X", education_school: "उमाकांत अकादमी इंग्लिश मीडियम, अगरतला", experience_title: "कार्य अनुभव", exp1_title: "सह-प्रमुख, प्रौद्योगिकी विभाग", exp1_company: "पी.जी.डी.ए.वी. कॉलेज, दिल्ली विश्वविद्यालय", exp2_title: "ग्राफिक डिजाइनर इंटर्न", exp2_company: "दिल्ली एनीमे क्लब", exp3_title: "डिजाइन संपादक (ई-न्यूज़लेटर: 'अनुरनन')", exp3_company: "पी.जी.डी.ए.वी. कॉलेज, दिल्ली विश्वविद्यालय", exp4_title: "ग्राफिक डिजाइनर", exp4_company: "स्पंदन'24, देशबंधु कॉलेज", awards_title: "पुरस्कार और मान्यता", award1_title: "राष्ट्रीय साधन-सह-मेरिट छात्रवृत्ति", award1_desc: "पश्चिम त्रिपुरा जिले में चौथा स्थान हासिल करने के लिए सम्मानित किया गया।", award2_title: "पीएम मोदी से प्रशंसा पत्र", award2_desc: "'परीक्षा पे चर्चा' में भाग लेने के लिए।", award3_title: "मेटावर्स प्रोग्राम के निर्माता", award3_desc: "चरण 1 पूरा (एआईसीटीई-मेटा-1एम1बी पहल)।", award4_title: "प्रमाणपत्र", award4_desc: "हार्वर्डएक्स: सीएस50 का कंप्यूटर विज्ञान का परिचय और गूगल डेटा विश्लेषण", skills_title: "व्यक्तिगत कौशल", skill_basic: "बुनियादी", skill_intermediate: "मध्यम", skill_advance: "उन्नत", skill_expert: "विशेषज्ञ", skill_r: "आर प्रोग्रामिंग", skill_web: "वेब डिजाइन", skill_video: "वीडियो संपादन", skill_graphic: "ग्राफिक डिजाइन", skill_data: "डेटा विश्लेषण", skill_creative: "रचनात्मक कला", skill_leadership: "नेतृत्व", process_title: "रचनात्मक प्रक्रिया", process1_title: "1. विचार और पटकथा लेखन", process1_desc: "यह प्रक्रिया रचनात्मक लेखन और वीडियो पटकथा लेखन के साथ शुरू होती है ताकि किसी भी परियोजना के लिए एक मजबूत कथा आधार बनाया जा सके, चाहे वह वीडियो हो या डिजाइन अभियान।", process2_title: "2. डिजाइन और विकास", process2_desc: "विवरण पर गहरी नजर रखते हुए, मैं कैनवा और फ्रंट-एंड प्रौद्योगिकियों जैसे उपकरणों का उपयोग करके ग्राफिक्स और वेब लेआउट विकसित करता हूं। वीडियो के लिए, मैं कच्ची वीडियोग्राफी से लेकर अंतिम संपादन तक पूरी पाइपलाइन संभालता हूं।", process3_title: "3. निष्पादन और वितरण", process3_desc: "ब्रांड दिशानिर्देशों का पालन करने वाले पॉलिश, एकजुट विपणन संपार्श्विक बनाने पर ध्यान केंद्रित करें। ग्राहकों की संतुष्टि और परियोजना की सफलता सुनिश्चित करने के लिए समय पर डिलीवरी के लिए प्रतिबद्ध।", projects_title: "परियोजना पोर्टफोलियो", project1_title: "सामग्री और सोशल मीडिया", project1_client: "ग्राहक: पी.जी.डी.ए.वी. कॉलेज", project1_desc: "प्रौद्योगिकी विभाग के सह-प्रमुख के रूप में, मैंने आकर्षक वीडियो सामग्री विकसित की, वार्षिक पत्रिका और सोशल मीडिया के लिए ग्राफिक्स बनाए, और ई-न्यूज़लेटर 'अनुरनन' के लिए इंस्टाग्राम का प्रबंधन किया।", project2_title: "विपणन और डिजाइन", project2_client: "ग्राहक: दिल्ली एनीमे क्लब", project2_desc: "एक ग्राफिक डिजाइनर इंटर्न के रूप में, मैंने एकजुट विपणन संपार्श्विक बनाने में सहायता की। मेरी भूमिका में विवरण पर गहरी नजर रखना और ब्रांड दिशानिर्देशों का पालन करने वाले पॉलिश डिजाइन देना शामिल था।", project3_title: "सोशल मीडिया ग्राफिक्स", project3_client: "ग्राहक: स्पंदन'24, देशबंधु कॉलेज", project3_desc: "स्पंदन'24 सांस्कृतिक उत्सव के लिए, मैंने उनके इंस्टाग्राम उपस्थिति के लिए ग्राफिक डिजाइनर के रूप में कार्य किया, इस कार्यक्रम को बढ़ावा देने और छात्र समुदाय के साथ जुड़ने के लिए जीवंत दृश्य बनाए।", contact_title: "धन्यवाद", contact_subtitle: "संपर्क जानकारी", languages_title: "भाषाएँ", lang_eng: "अंग्रेज़ी", lang_ben: "बंगाली", lang_hin: "हिंदी", lang_eng_level: "उन्नत (C1)", lang_ben_level: "द्विभाषी (C2)", lang_hin_level: "उच्च मध्यवर्ती (B2)" },
+                te: { landing_title: "పోర్ట్‌ఫోలియో", landing_name: "దీప్తాను కర్మాకర్", landing_subtitle: "అండర్ గ్రాడ్యుయేట్ విద్యార్థి", landing_enter: "ప్రవేశించండి", footer_text: "©️ దీప్తాను కె.", overview_title: "పోర్ట్‌ఫోలియో", overview_subtitle: "అవలోకనం", nav_about: "నా గురించి", nav_experience: "పని అనుభవం", nav_skills: "వ్యక్తిగత నైపుణ్యాలు", nav_projects: "ప్రాజెక్ట్‌లు", nav_vision: "దృష్టి", nav_education: "విద్య", nav_awards: "అవార్డులు & గుర్తింపు", nav_process: "సృజనాత్మక ప్రక్రియ", nav_contact: "సంప్రదించండి", about_title: "నా గురించి", about_text: "5.63 CGPAతో గణితంలో ఆనర్స్ పట్టభద్రుడు. డేటా వ్రాంగ్లింగ్, స్టాటిస్టికల్ మోడలింగ్ మరియు డేటా విజువలైజేషన్ కోసం R ప్రోగ్రామింగ్‌లో బలమైన నైపుణ్యం. ఫ్రంట్-ఎండ్ వెబ్ డెవలప్‌మెంట్, వీడియో ఎడిటింగ్ మరియు వివిధ మల్టీమీడియా సాధనాల్లో ప్రావీణ్యం. రచన, చిత్రలేఖనం మరియు శిల్పకళ ద్వారా అద్భుతమైన కమ్యూనికేషన్ నైపుణ్యాలు మరియు నిరూపితమైన సృజనాత్మక ఆలోచనలతో గుర్తింపు పొందిన నాయకుడు.", vision_title: "దృష్టి", vision_text: "నిరంతర అభ్యాసం ద్వారా వినూత్న పరిష్కారాలను అందించడానికి విశ్లేషణాత్మక సామర్థ్యాలు మరియు సృజనాత్మక నైపుణ్యాలను ఉపయోగించడం. డేటా విశ్లేషణ, వెబ్ డెవలప్‌మెంట్ మరియు మల్టీమీడియా ఉత్పత్తిలో నా నైపుణ్యాన్ని వర్తింపజేయగల సవాలుతో కూడిన పాత్రలను కోరుకుంటున్నాను. ఆకర్షణీయమైన ప్రాజెక్ట్‌లకు సహకారం అందించడం, సకాలంలో మెరుగుపెట్టిన ఫలితాలను అందించడం మరియు నా నైపుణ్యాలను నిరంతరం విస్తరించడం నా లక్ష్యం.", education_title: "విద్యా నేపథ్యం", education_degree: "బ్యాచిలర్ ఆఫ్ సైన్స్ ఇన్ మ్యాథమెటిక్స్", education_college: "పి.జి.డి.ఎ.వి. కళాశాల, ఢిల్లీ విశ్వవిద్యాలయం (CGPA: 5.63)", education_xii: "12వ తరగతి (సైన్స్)", education_x: "10వ తరగతి", education_school: "ఉమాకాంత అకాడమీ ఇంగ్లీష్ మీడియం, అగర్తల", experience_title: "పని అనుభవం", exp1_title: "సహ-హెడ్, టెక్నాలజీ విభాగం", exp1_company: "పి.జి.డి.ఎ.వి. కళాశాల, ఢిల్లీ విశ్వవిద్యాలయం", exp2_title: "గ్రాఫిక్ డిజైనర్ ఇంటర్న్", exp2_company: "ఢిల్లీ అనిమే క్లబ్", exp3_title: "డిజైన్ ఎడిటర్ (ఇ-న్యూస్‌లెటర్: 'अनुरनन')", exp3_company: "పి.జి.డి.ఎ.వి. కళాశాల, ఢిల్లీ విశ్వవిద్యాలయం", exp4_title: "గ్రాఫిక్ డిజైనర్", exp4_company: "స్పందన్'24, దేశబంధు కళాశాల", awards_title: "అవార్డులు & గుర్తింపు", award1_title: "నేషనల్ మీన్స్-కమ్-మెరిట్ స్కాలర్‌షిప్", award1_desc: "పశ్చిమ త్రిపుర జిల్లాలో 4వ ర్యాంక్ సాధించినందుకు ప్రదానం చేయబడింది.", award2_title: "ప్రధాని మోడీ నుండి ప్రశంసాపత్రం", award2_desc: "'పరీక్షా పే చర్చా'లో పాల్గొన్నందుకు.", award3_title: "క్రియేటర్స్ ఆఫ్ మెటావర్స్ ప్రోగ్రామ్", award3_desc: "దశ 1 పూర్తి (AICTE-Meta-1M1B చొరవ).", award4_title: "ధృవపత్రాలు", award4_desc: "హార్వర్డ్‌ఎక్స్: CS50'స్ ఇంట్రో టు CS & గూగుల్ డేటా అనాలిసిస్", skills_title: "వ్యక్తిగత నైపుణ్యాలు", skill_basic: "ప్రాథమికం", skill_intermediate: "మధ్యస్థం", skill_advance: "అధునాతనం", skill_expert: "నిపుణుడు", skill_r: "R ప్రోగ్రామింగ్", skill_web: "వెబ్ డిజైన్", skill_video: "వీడియో ఎడిటింగ్", skill_graphic: "గ్రాఫిక్ డిజైన్", skill_data: "డేటా విశ్లేషణ", skill_creative: "సృజనాత్మక కళలు", skill_leadership: "నాయకత్వం", process_title: "సృజనాత్మక ప్రక్రియ", process1_title: "1. ఆలోచన & స్క్రిప్టింగ్", process1_desc: "ఈ ప్రక్రియ సృజనాత్మక రచన మరియు వీడియో స్క్రిప్టింగ్‌తో ప్రారంభమవుతుంది, ఇది వీడియో అయినా లేదా డిజైన్ ప్రచారం అయినా ఏదైనా ప్రాజెక్ట్ కోసం బలమైన కథన పునాదిని నిర్మిస్తుంది.", process2_title: "2. డిజైన్ & డెవలప్‌మెంట్", process2_desc: "వివరాలపై నిశితమైన దృష్టిని ఉపయోగించి, నేను కాన్వా మరియు ఫ్రంట్-ఎండ్ టెక్నాలజీస్ వంటి సాధనాలను ఉపయోగించి గ్రాఫిక్స్ మరియు వెబ్ లేఅవుట్‌లను అభివృద్ధి చేస్తాను. వీడియో కోసం, నేను రా వీడియోగ్రఫీ నుండి తుది సవరణల వరకు మొత్తం పైప్‌లైన్‌ను నిర్వహిస్తాను.", process3_title: "3. అమలు & డెలివరీ", process3_desc: "బ్రాండ్ మార్గదర్శకాలకు కట్టుబడి ఉండే మెరుగుపెట్టిన, పొందికైన మార్కెటింగ్ అనుషంగికాలను రూపొందించడంపై దృష్టి పెట్టండి. క్లయింట్ సంతృప్తి మరియు ప్రాజెక్ట్ విజయాన్ని నిర్ధారించడానికి సకాలంలో డెలివరీకి కట్టుబడి ఉంది.", projects_title: "ప్రాజెక్ట్ పోర్ట్‌ఫోలియో", project1_title: "కంటెంట్ & సోషల్ మీడియా", project1_client: "క్లయింట్: పి.జి.డి.ఎ.వి. కళాశాల", project1_desc: "టెక్నాలజీ విభాగానికి సహ-హెడ్‌గా, నేను ఆకర్షణీయమైన వీడియో కంటెంట్‌ను అభివృద్ధి చేసాను, వార్షిక పత్రిక మరియు సోషల్ మీడియా కోసం గ్రాఫిక్స్ సృష్టించాను మరియు ఇ-న్యూస్‌లెటర్ 'अनुरनन' కోసం ఇన్‌స్టాగ్రామ్‌ను నిర్వహించాను.", project2_title: "మార్కెటింగ్ & డిజైన్", project2_client: "క్లయింట్: ఢిల్లీ అనిమే క్లబ్", project2_desc: "గ్రాఫిక్ డిజైనర్ ఇంటర్న్‌గా, నేను పొందికైన మార్కెటింగ్ అనుషంగికాలను రూపొందించడంలో సహాయం చేసాను. నా పాత్రలో వివరాలపై నిశితమైన దృష్టిని అభివృద్ధి చేయడం మరియు బ్రాండ్ మార్గదర్శకాలకు కట్టుబడి ఉండే మెరుగుపెట్టిన డిజైన్‌లను అందించడం ఉన్నాయి.", project3_title: "సోషల్ మీడియా గ్రాఫిక్స్", project3_client: "క్లయింట్: స్పందన్'24, దేశబంధు కళాశాల", project3_desc: "స్పందన్'24 సాంస్కృతిక ఉత్సవం కోసం, నేను వారి ఇన్‌స్టాగ్రామ్ ఉనికి కోసం గ్రాఫిక్ డిజైనర్‌గా పనిచేశాను, ఈవెంట్‌ను ప్రోత్సహించడానికి మరియు విద్యార్థి సంఘంతో పాలుపంచుకోవడానికి ఉత్సాహభరితమైన విజువల్స్ సృష్టించాను.", contact_title: "ధన్యవాదాలు", contact_subtitle: "సంప్రదింపు సమాచారం", languages_title: "భాషలు", lang_eng: "ఆంగ్లము", lang_ben: "బెంగాలీ", lang_hin: "హిందీ", lang_eng_level: "అధునాతనం (C1)", lang_ben_level: "ద్విభాషా (C2)", lang_hin_level: "ఉన్నత మధ్యస్థం (B2)" },
+                ta: { landing_title: "போர்ட்ஃபோலியோ", landing_name: "தீப்தானு கர்மாகர்", landing_subtitle: "இளங்கலை மாணவர்", landing_enter: "உள்ளிடவும்", footer_text: "©️ தீப்தானு கே.", overview_title: "போர்ட்ஃபோலியோ", overview_subtitle: "கண்ணோட்டம்", nav_about: "என்னைப் பற்றி", nav_experience: "பணி அனுபவம்", nav_skills: "தனிப்பட்ட திறன்கள்", nav_projects: "திட்டங்கள்", nav_vision: "பார்வை", nav_education: "கல்வி", nav_awards: "விருதுகள் & அங்கீகாரம்", nav_process: "படைப்பு செயல்முறை", nav_contact: "தொடர்பு", about_title: "என்னைப் பற்றி", about_text: "5.63 CGPA உடன் கணிதத்தில் ஹானர்ஸ் பட்டதாரி. தரவு கையாளுதல், புள்ளிவிவர மாதிரியாக்கம் மற்றும் தரவு காட்சிப்படுத்தலுக்கான R நிரலாக்கத்தில் வலுவானவர். முன்-இறுதி வலை மேம்பாடு, வீடியோ எடிட்டிங் மற்றும் பல்வேறு மல்டிமீடியா கருவிகளில் திறமையானவர். எழுத்து, ஓவியம் மற்றும் சிற்பக்கலை மூலம் சிறந்த தகவல் தொடர்பு திறன் மற்றும் நிரூபிக்கப்பட்ட படைப்பு சிந்தனை கொண்ட அங்கீகரிக்கப்பட்ட தலைவர்.", vision_title: "பார்வை", vision_text: "தொடர்ச்சியான கற்றல் மூலம் புதுமையான தீர்வுகளை இயக்க பகுப்பாய்வு திறன்கள் மற்றும் படைப்பு திறன்களை மேம்படுத்துதல். தரவு பகுப்பாய்வு, வலை மேம்பாடு மற்றும் மல்டிமீடியா தயாரிப்பில் எனது திறமையை நான் பயன்படுத்தக்கூடிய சவாலான பாத்திரங்களைத் தேடுகிறேன். ஈடுபாட்டுடன் கூடிய திட்டங்களுக்கு பங்களிப்பதை, சரியான நேரத்தில் மெருகூட்டப்பட்ட முடிவுகளை வழங்குவதை மற்றும் எனது திறன்களை தொடர்ந்து விரிவுபடுத்துவதை நான் நோக்கமாகக் கொண்டுள்ளேன்.", education_title: "கல்வி பின்னணி", education_degree: "கணிதத்தில் அறிவியல் இளங்கலை", education_college: "பி.ஜி.டி.ஏ.வி. கல்லூரி, தில்லி பல்கலைக்கழகம் (CGPA: 5.63)", education_xii: "வகுப்பு XII (அறிவியல்)", education_x: "வகுப்பு X", education_school: "உமாகாந்தா அகாடமி ஆங்கில வழி, அகர்தலா", experience_title: "பணி அனுபவம்", exp1_title: "இணைத் தலைவர், தொழில்நுட்பத் துறை", exp1_company: "பி.জি.டி.ஏ.வி. கல்லூரி, தில்லி பல்கலைக்கழகம்", exp2_title: "கிராஃபிக் டிசைனர் இன்டர்ன்", exp2_company: "டெல்லி அனிமே கிளப்", exp3_title: "வடிவமைப்பு ஆசிரியர் (மின்-செய்திமடல்: 'अनुरनन')", exp3_company: "பி.জি.டி.ஏ.வி. கல்லூரி, தில்லி பல்கலைக்கழகம்", exp4_title: "கிராஃபிக் டிசைனர்", exp4_company: "ஸ்பந்தன்'24, தேசபந்து கல்லூரி", awards_title: "விருதுகள் & அங்கீகாரம்", award1_title: "தேசிய வழி-கம்-தகுதி உதவித்தொகை", award1_desc: "மேற்கு திரிபுரா மாவட்டத்தில் 4வது இடத்தைப் பெற்றதற்காக வழங்கப்பட்டது.", award2_title: "பிரதமர் மோடியிடமிருந்து பாராட்டு கடிதம்", award2_desc: "'பரீക്ഷா பே சர்ச்சா'வில் பங்கேற்றதற்காக.", award3_title: "மெட்டாவர்ஸ் திட்டத்தின் படைப்பாளர்கள்", award3_desc: "கட்டம் 1 நிறைவு (AICTE-Meta-1M1B முயற்சி).", award4_title: "சான்றிதழ்கள்", award4_desc: "ஹார்வர்டுஎக்ஸ்: CS50'ஸ் இன்ட்ரோ டு CS & கூகிள் தரவு பகுப்பாய்வு", skills_title: "தனிப்பட்ட திறன்கள்", skill_basic: "அடிப்படை", skill_intermediate: "இடைநிலை", skill_advance: "மேம்பட்ட", skill_expert: "நிபுணர்", skill_r: "R நிரலாக்கம்", skill_web: "வலை வடிவமைப்பு", skill_video: "வீடியோ எடிட்டிங்", skill_graphic: "கிராஃபிக் வடிவமைப்பு", skill_data: "தரவு பகுப்பாய்வு", skill_creative: "படைப்பு கலைகள்", skill_leadership: "தலைமைத்துவம்", process_title: "படைப்பு செயல்முறை", process1_title: "1. கருத்தாக்கம் & ஸ்கிரிப்டிங்", process1_desc: "இந்த செயல்முறை படைப்பு எழுத்து மற்றும் வீடியோ ஸ்கிரிப்டிங் மூலம் தொடங்குகிறது, இது எந்தவொரு திட்டத்திற்கும் ஒரு வலுவான கதை அடித்தளத்தை உருவாக்குகிறது, அது வீடியோவாக இருந்தாலும் சரி அல்லது வடிவமைப்பு பிரச்சாரமாக இருந்தாலும் சரி.", process2_title: "2. வடிவமைப்பு & மேம்பாடு", process2_desc: "விவரங்களுக்கு ஒரு தீவிரமான கண்ணைப் பயன்படுத்தி, கேன்வா மற்றும் முன்-இறுதி தொழில்நுட்பங்கள் போன்ற கருவிகளைப் பயன்படுத்தி கிராபிக்ஸ் மற்றும் வலை தளவமைப்புகளை நான் உருவாக்குகிறேன். வீடியோவைப் பொறுத்தவரை, மூல வீடியோகிராஃபியிலிருந்து இறுதி திருத்தங்கள் வரை முழு பைப்லைனையும் நான் கையாளுகிறேன்.", process3_title: "3. செயல்படுத்தல் & விநியோகம்", process3_desc: "பிராண்ட் வழிகாட்டுதல்களைப் பின்பற்றும் மெருகூட்டப்பட்ட, ஒருங்கிணைந்த சந்தைப்படுத்தல் இணைப்பொருட்களை உருவாக்குவதில் கவனம் செலுத்துங்கள். வாடிக்கையாளர் திருப்தி மற்றும் திட்ட வெற்றியை உறுதிப்படுத்த சரியான நேரத்தில் வழங்குவதில் உறுதியாக உள்ளது.", projects_title: "திட்ட போர்ட்ஃபோலியோ", project1_title: "உள்ளடக்கம் & சமூக ஊடகங்கள்", project1_client: "வாடிக்கையாளர்: பி.জি.டி.ஏ.வி. கல்லூரி", project1_desc: "தொழில்நுட்பத் துறையின் இணைத் தலைவராக, நான் ஈடுபாட்டுடன் கூடிய வீடியோ உள்ளடக்கத்தை உருவாக்கினேன், வருடாந்திர இதழ் மற்றும் சமூக ஊடகங்களுக்கான கிராபிக்ஸ் உருவாக்கினேன், மேலும் மின்-செய்திமடல் 'अनुरनन' க்கான இன்ஸ்டாகிராமை நிர்வகித்தேன்.", project2_title: "சந்தைப்படுத்தல் & வடிவமைப்பு", project2_client: "வாடிக்கையாளர்: டெல்லி அனிமே கிளப்", project2_desc: "ஒரு கிராஃபிக் டிசைனர் இன்டர்னாக, நான் ஒருங்கிணைந்த சந்தைப்படுத்தல் இணைப்பொருட்களை உருவாக்குவதில் உதவினேன். எனது பங்கில் விவரங்களுக்கு ஒரு தீவிரமான கண்ணை உருவாக்குவதும், பிராண்ட் வழிகாட்டுதல்களைப் பின்பற்றும் மெருகூட்டப்பட்ட வடிவமைப்புகளை வழங்குவதும் அடங்கும்.", project3_title: "சமூக ஊடக கிராபிக்ஸ்", project3_client: "வாடிக்கையாளர்: ஸ்பந்தன்'24, தேசபந்து கல்லூரி", project3_desc: "ஸ்பந்தன்'24 கலாச்சார விழாவிற்கு, நான் அவர்களின் இன்ஸ்டாகிராம் இருப்புக்கான கிராஃபிக் டிசைனராக பணியாற்றினேன், நிகழ்வை விளம்பரப்படுத்தவும் மாணவர் சமூகத்துடன் ஈடுபடவும் துடிப்பான காட்சிகளை உருவாக்கினேன்.", contact_title: "நன்றி", contact_subtitle: "தொடர்பு தகவல்", languages_title: "மொழிகள்", lang_eng: "ஆங்கிலம்", lang_ben: "பெங்காலி", lang_hin: "இந்தி", lang_eng_level: "மேம்பட்ட (C1)", lang_ben_level: "இருமொழி (C2)", lang_hin_level: "உயர் இடைநிலை (B2)" },
+                kn: { landing_title: "ಪೋರ್ಟ್‌ಫೋಲಿಯೋ", landing_name: "ದೀಪ್ತಾನು ಕರ್ಮಾಕರ್", landing_subtitle: "ಪದವಿಪೂರ್ವ ವಿದ್ಯಾರ್ಥಿ", landing_enter: "ಪ್ರವೇಶಿಸಿ", footer_text: "©️ ದೀಪ್ತಾನು ಕೆ.", overview_title: "ಪೋರ್ಟ್‌ಫೋಲಿಯೋ", overview_subtitle: "ಅವಲೋಕನ", nav_about: "ನನ್ನ ಬಗ್ಗೆ", nav_experience: "ಕೆಲಸದ ಅನುಭವ", nav_skills: "ವೈಯಕ್ತಿಕ ಕೌಶಲ್ಯಗಳು", nav_projects: "ಯೋಜನೆಗಳು", nav_vision: "ದೃಷ್ಟಿ", nav_education: "ಶಿಕ್ಷಣ", nav_awards: "ಪ್ರಶಸ್ತಿಗಳು ಮತ್ತು ಮಾನ್ಯತೆ", nav_process: "ಸೃಜನಾತ್ಮಕ ಪ್ರಕ್ರಿಯೆ", nav_contact: "ಸಂಪರ್ಕಿಸಿ", about_title: "ನನ್ನ ಬಗ್ಗೆ", about_text: "5.63 ಸಿಜಿಪಿಎಯೊಂದಿಗೆ ಗಣಿತದಲ್ಲಿ ಗೌರವ ಪದವೀಧರ. ಡೇಟಾ ನಿರ್ವಹಣೆ, ಸಂಖ್ಯಾಶಾಸ್ತ್ರೀಯ ಮಾದರಿ ಮತ್ತು ಡೇಟಾ ದೃಶ್ಯೀಕರಣಕ್ಕಾಗಿ ಆರ್ ಪ್ರೋಗ್ರಾಮಿಂಗ್‌ನಲ್ಲಿ ಪ್ರವೀಣ. ಫ್ರಂಟ್-ಎಂಡ್ ವೆಬ್ ಅಭಿವೃದ್ಧಿ, ವೀಡಿಯೊ ಸಂಪಾದನೆ ಮತ್ತು ವಿವಿಧ ಮಲ್ಟಿಮೀಡಿಯಾ ಸಾಧನಗಳಲ್ಲಿ ನಿಪುಣ. ಬರವಣಿಗೆ, ಚಿತ್ರಕಲೆ ಮತ್ತು ಶಿಲ್ಪಕಲೆಯ ಮೂಲಕ ಅತ್ಯುತ್ತಮ ಸಂವಹನ ಕೌಶಲ್ಯ ಮತ್ತು ಸಾಬೀತಾದ ಸೃಜನಾತ್ಮಕ ಚಿಂತನೆಯೊಂದಿಗೆ ಮಾನ್ಯತೆ ಪಡೆದ ನಾಯಕ.", vision_title: "ದೃಷ್ಟಿ", vision_text: "ನಿರಂತರ ಕಲಿಕೆಯ ಮೂಲಕ ನವೀನ ಪರಿಹಾರಗಳನ್ನು ಚಾಲನೆ ಮಾಡಲು ವಿಶ್ಲೇಷಣಾತ್ಮಕ ಸಾಮರ್ಥ್ಯಗಳು ಮತ್ತು ಸೃಜನಾತ್ಮಕ ಕೌಶಲ್ಯಗಳನ್ನು ಬಳಸುವುದು. ಡೇಟಾ ವಿಶ್ಲೇಷಣೆ, ವೆಬ್ ಅಭಿವೃದ್ಧಿ ಮತ್ತು ಮಲ್ಟಿಮೀಡಿಯಾ ಉತ್ಪಾದನೆಯಲ್ಲಿ ನನ್ನ ಪ್ರಾವೀಣ್ಯತೆಯನ್ನು ಅನ್ವಯಿಸಬಹುದಾದ ಸವಾಲಿನ ಪಾತ್ರಗಳನ್ನು ಹುಡುಕುತ್ತಿದ್ದೇನೆ. ಆಕರ್ಷಕ ಯೋಜನೆಗಳಿಗೆ ಕೊಡುಗೆ ನೀಡಲು, ಸಮಯಕ್ಕೆ ಸರಿಯಾಗಿ ಸುಧಾರಿತ ಫಲಿತಾಂಶಗಳನ್ನು ನೀಡಲು ಮತ್ತು ನನ್ನ ಕೌಶಲ್ಯಗಳನ್ನು ನಿರಂತರವಾಗಿ ವಿಸ್ತರಿಸಲು ನಾನು ಗುರಿ ಹೊಂದಿದ್ದೇನೆ.", education_title: "ಶೈಕ್ಷಣಿಕ ಹಿನ್ನೆಲೆ", education_degree: "ಗಣಿತದಲ್ಲಿ ವಿಜ್ಞಾನ ಪದವಿ", education_college: "ಪಿ.ಜಿ.ಡಿ.ಎ.ವಿ. ಕಾಲೇಜು, ದೆಹಲಿ ವಿಶ್ವವಿದ್ಯಾಲಯ (ಸಿಜಿಪಿಎ: 5.63)", education_xii: "12ನೇ ತರಗತಿ (ವಿಜ್ಞಾನ)", education_x: "10ನೇ ತರಗತಿ", education_school: "ಉಮಾಕಾಂತ ಅಕಾಡೆಮಿ ಇಂಗ್ಲಿಷ್ ಮಾಧ್ಯಮ, ಅಗರ್ತಲಾ", experience_title: "ಕೆಲಸದ ಅನುಭವ", exp1_title: "ಸಹ-ಮುಖ್ಯಸ್ಥ, ತಂತ್ರಜ್ಞಾನ ವಿಭಾಗ", exp1_company: "ಪಿ.ಜಿ.ಡಿ.ಎ.ವಿ. ಕಾಲೇಜು, ದೆಹಲಿ ವಿಶ್ವವಿದ್ಯಾಲಯ", exp2_title: "ಗ್ರಾಫಿಕ್ ಡಿಸೈನರ್ ಇಂಟರ್ನ್", exp2_company: "ದೆಹಲಿ ಅನಿಮೆ ಕ್ಲಬ್", exp3_title: "ವಿನ್ಯಾಸ ಸಂಪಾದಕ (ಇ-ಸುದ್ದಿಪತ್ರ: 'अनुरनन')", exp3_company: "ಪಿ.ಜಿ.ಡಿ.ಎ.ವಿ. ಕಾಲೇಜು, ದೆಹಲಿ ವಿಶ್ವವಿದ್ಯಾಲಯ", exp4_title: "ಗ್ರಾಫಿಕ್ ಡಿಸೈನರ್", exp4_company: "ಸ್ಪಂದನ್'24, ದೇಶಬಂಧು ಕಾಲೇಜು", awards_title: "ಪ್ರಶಸ್ತಿಗಳು ಮತ್ತು ಮಾನ್ಯತೆ", award1_title: "ರಾಷ್ಟ್ರೀಯ ಮೀನ್ಸ್-ಕಮ್-ಮೆರಿಟ್ ವಿದ್ಯಾರ್ಥಿವೇತನ", award1_desc: "ಪಶ್ಚಿಮ ತ್ರಿಪುರಾ ಜಿಲ್ಲೆಯಲ್ಲಿ 4 ನೇ ಶ್ರೇಣಿ ಪಡೆದಿದ್ದಕ್ಕಾಗಿ ನೀಡಲಾಗಿದೆ.", award2_title: "ಪ್ರಧಾನಿ ಮೋದಿಯಿಂದ ಮೆಚ್ಚುಗೆ ಪತ್ರ", award2_desc: "'ಪರೀಕ್ಷಾ ಪೇ ಚರ್ಚಾ'ದಲ್ಲಿ ಭಾಗವಹಿಸಿದ್ದಕ್ಕಾಗಿ.", award3_title: "ಮೆಟಾವರ್ಸ್ ಕಾರ್ಯಕ್ರಮದ ರಚನೆಕಾರರು", award3_desc: "ಹಂತ 1 ಪೂರ್ಣಗೊಂಡಿದೆ (AICTE-Meta-1M1B ಉಪಕ್ರಮ).", award4_title: "ಪ್ರಮಾಣೀಕರಣಗಳು", award4_desc: "ಹಾರ್ವರ್ಡ್ಎಕ್ಸ್: ಸಿಎಸ್50'ಸ್ ಇಂಟ್ರೊ ಟು ಸಿಎಸ್ ಮತ್ತು ಗೂಗಲ್ ಡೇಟಾ ಅನಾಲಿಸಿಸ್", skills_title: "ವೈಯಕ್ತಿಕ ಕೌಶಲ್ಯಗಳು", skill_basic: "ಮೂಲಭೂತ", skill_intermediate: "ಮಧ್ಯಂತರ", skill_advance: "ಮುಂದುವರಿದ", skill_expert: "ತಜ್ಞ", skill_r: "ಆರ್ ಪ್ರೋಗ್ರಾಮಿಂಗ್", skill_web: "ವೆಬ್ ವಿನ್ಯಾಸ", skill_video: "ವೀಡಿಯೊ ಸಂಪಾದನೆ", skill_graphic: "ಗ್ರಾಫಿಕ್ ವಿನ್ಯಾಸ", skill_data: "ಡೇಟಾ ವಿಶ್ಲೇಷಣೆ", skill_creative: "ಸೃಜನಾತ್ಮಕ ಕಲೆಗಳು", skill_leadership: "ನಾಯಕತ್ವ", process_title: "ಸೃಜನಾತ್ಮಕ ಪ್ರಕ್ರಿಯೆ", process1_title: "1. ಕಲ್ಪನೆ ಮತ್ತು ಸ್ಕ್ರಿಪ್ಟಿಂಗ್", process1_desc: "ಈ ಪ್ರಕ್ರಿಯೆಯು ಸೃಜನಾತ್ಮಕ ಬರವಣಿಗೆ ಮತ್ತು ವೀಡಿಯೊ ಸ್ಕ್ರಿಪ್ಟಿಂಗ್‌ನೊಂದಿಗೆ ಪ್ರಾರಂಭವಾಗುತ್ತದೆ, ಇದು ಯಾವುದೇ ಯೋಜನೆಗೆ, ಅದು ವೀಡಿಯೊ ಅಥವಾ ವಿನ್ಯಾಸ ಪ್ರಚಾರವಾಗಿರಲಿ, ಬಲವಾದ ನಿರೂಪಣಾ ಅಡಿಪಾಯವನ್ನು ನಿರ್ಮಿಸುತ್ತದೆ.", process2_title: "2. ವಿನ್ಯಾಸ ಮತ್ತು ಅಭಿವೃದ್ಧಿ", process2_desc: "ವಿವರಗಳಿಗೆ ತೀವ್ರವಾದ ಕಣ್ಣನ್ನು ಬಳಸಿಕೊಂಡು, ನಾನು ಕ್ಯಾನ್ವಾ ಮತ್ತು ಫ್ರಂಟ್-ಎಂಡ್ ತಂತ್ರಜ್ಞಾನಗಳಂತಹ ಸಾಧನಗಳನ್ನು ಬಳಸಿ ಗ್ರಾಫಿಕ್ಸ್ ಮತ್ತು ವೆಬ್ ಲೇಔಟ್‌ಗಳನ್ನು ಅಭಿವೃದ್ಧಿಪಡಿಸುತ್ತೇನೆ. ವೀಡಿಯೊಗಾಗಿ, ನಾನು ಕಚ್ಚಾ ವೀಡಿಯೊಗ್ರಫಿಯಿಂದ ಅಂತಿಮ ಸಂಪಾದನೆಗಳವರೆಗೆ ಸಂಪೂರ್ಣ ಪೈಪ್‌ಲೈನ್ ಅನ್ನು ನಿರ್ವಹಿಸುತ್ತೇನೆ.", process3_title: "3. ಕಾರ್ಯಗತಗೊಳಿಸುವಿಕೆ ಮತ್ತು ವಿತರಣೆ", process3_desc: "ಬ್ರ್ಯಾಂಡ್ ಮಾರ್ಗಸೂಚಿಗಳಿಗೆ ಬದ್ಧವಾಗಿರುವ ಸುಧಾರಿತ, ಸುಸಂಬದ್ಧವಾದ ಮಾರ್ಕೆಟಿಂಗ್ ಸಾಮಗ್ರಿಗಳನ್ನು ರಚಿಸುವುದರ ಮೇಲೆ ಗಮನಹರಿಸಿ. ಗ್ರಾಹಕರ ತೃಪ್ತಿ ಮತ್ತು ಯೋಜನೆಯ ಯಶಸ್ಸನ್ನು ಖಚಿತಪಡಿಸಿಕೊಳ್ಳಲು ಸಮಯಕ್ಕೆ ಸರಿಯಾಗಿ ವಿತರಣೆಗೆ ಬದ್ಧವಾಗಿದೆ.", projects_title: "ಯೋಜನೆ ಪೋರ್ಟ್‌ಫೋಲಿಯೋ", project1_title: "ವಿಷಯ ಮತ್ತು ಸಾಮಾಜಿಕ ಮಾಧ್ಯಮ", project1_client: "ಗ್ರಾಹಕ: ಪಿ.ಜಿ.ಡಿ.ಎ.ವಿ. ಕಾಲೇಜು", project1_desc: "ತಂತ್ರಜ್ಞಾನ ವಿಭಾಗದ ಸಹ-ಮುಖ್ಯಸ್ಥನಾಗಿ, ನಾನು ಆಕರ್ಷಕ ವೀಡಿಯೊ ವಿಷಯವನ್ನು ಅಭಿವೃದ್ಧಿಪಡಿಸಿದೆ, ವಾರ್ಷಿಕ ಪತ್ರಿಕೆ ಮತ್ತು ಸಾಮಾಜಿಕ ಮಾಧ್ಯಮಕ್ಕಾಗಿ ಗ್ರಾಫಿಕ್ಸ್ ರಚಿಸಿದೆ, ಮತ್ತು ಇ-ಸುದ್ದಿಪತ್ರ 'अनुरनन' ಗಾಗಿ ಇನ್‌ಸ್ಟಾಗ್ರಾಮ್ ಅನ್ನು ನಿರ್ವಹಿಸಿದೆ.", project2_title: "ಮಾರ್ಕೆಟಿಂಗ್ ಮತ್ತು ವಿನ್ಯಾಸ", project2_client: "ಗ್ರಾಹಕ: ದೆಹಲಿ ಅನಿಮೆ ಕ್ಲಬ್", project2_desc: "ಗ್ರಾಫಿಕ್ ಡಿಸೈನರ್ ಇಂಟರ್ನ್ ಆಗಿ, ನಾನು ಸುಸಂಬದ್ಧವಾದ ಮಾರ್ಕೆಟಿಂಗ್ ಸಾಮಗ್ರಿಗಳನ್ನು ರಚಿಸಲು ಸಹಾಯ ಮಾಡಿದೆ. ನನ್ನ ಪಾತ್ರವು ವಿವರಗಳಿಗೆ ತೀವ್ರವಾದ ಕಣ್ಣನ್ನು ಅಭಿವೃದ್ಧಿಪಡಿಸುವುದು ಮತ್ತು ಬ್ರ್ಯಾಂಡ್ ಮಾರ್ಗಸೂಚಿಗಳಿಗೆ ಬದ್ಧವಾಗಿರುವ ಸುಧಾರಿತ ವಿನ್ಯಾಸಗಳನ್ನು ನೀಡುವುದನ್ನು ಒಳಗೊಂಡಿತ್ತು.", project3_title: "ಸಾಮಾಜಿಕ ಮಾಧ್ಯಮ ಗ್ರಾಫಿಕ್ಸ್", project3_client: "ಗ್ರಾಹಕ: ಸ್ಪಂದನ್'24, ದೇಶಬಂಧು ಕಾಲೇಜು", project3_desc: "ಸ್ಪಂದನ್'24 ಸಾಂಸ್ಕೃತಿಕ ಉತ್ಸವಕ್ಕಾಗಿ, ನಾನು ಅವರ ಇನ್‌ಸ್ಟಾಗ್ರಾಮ್ ಉಪಸ್ಥಿತಿಗಾಗಿ ಗ್ರಾಫಿಕ್ ಡಿಸೈನರ್ ಆಗಿ ಸೇವೆ ಸಲ್ಲಿಸಿದೆ, ಈವೆಂಟ್ ಅನ್ನು ಉತ್ತೇಜಿಸಲು ಮತ್ತು ವಿದ್ಯಾರ್ಥಿ ಸಮುದಾಯದೊಂದಿಗೆ ತೊಡಗಿಸಿಕೊಳ್ಳಲು ರೋಮಾಂಚಕ ದೃಶ್ಯಗಳನ್ನು ರಚಿಸಿದೆ.", contact_title: "ಧನ್ಯವಾದಗಳು", contact_subtitle: "ಸಂಪರ್ಕ ಮಾಹಿತಿ", languages_title: "ಭಾಷೆಗಳು", lang_eng: "ಆಂಗ್ಲ", lang_ben: "ಬೆಂಗಾಲಿ", lang_hin: "ಹಿಂದಿ", lang_eng_level: "ಮುಂದುವರಿದ (C1)", lang_ben_level: "ದ್ವಿಭಾಷಿಕ (C2)", lang_hin_level: "ಉನ್ನತ ಮಧ್ಯಂತರ (B2)" },
+                zh: { landing_title: "作品集", landing_name: "迪普塔努·卡马卡", landing_subtitle: "本科生", landing_enter: "进入", footer_text: "©️ 迪普塔努·K.", overview_title: "作品集", overview_subtitle: "概述", nav_about: "关于我", nav_experience: "工作经历", nav_skills: "个人技能", nav_projects: "项目", nav_vision: "愿景", nav_education: "教育背景", nav_awards: "奖项与认可", nav_process: "创作过程", nav_contact: "联系方式", about_title: "关于我", about_text: "充满热情的数学荣誉毕业生，CGPA 5.63。精通R语言，用于数据整理、统计建模和数据可视化。熟练掌握前端网页开发、视频编辑和各种多媒体工具。公认的领导者，具有出色的沟通技巧，并通过写作、绘画和雕塑证明了创造性思维。", vision_title: "愿景", vision_text: "利用分析能力和创造性技能，通过不断学习推动创新解决方案。寻求具有挑战性的职位，以便我能运用在数据分析、网页开发和多媒体制作方面的熟练技能。我的目标是为引人入胜的项目做出贡献，及时交付精美的成果，并不断扩展我的技能。", education_title: "教育背景", education_degree: "数学理学学士", education_college: "P.G.D.A.V. 学院, 德里大学 (CGPA: 5.63)", education_xii: "十二年级 (理科)", education_x: "十年级", education_school: "乌玛坎塔学院英语中学, 阿加尔塔拉", experience_title: "工作经历", exp1_title: "技术部联合负责人", exp1_company: "P.G.D.A.V. 学院, 德里大学", exp2_title: "平面设计师实习生", exp2_company: "德里动漫俱乐部", exp3_title: "设计编辑 (电子通讯: 'अनुरनन')", exp3_company: "P.G.D.A.V. 学院, 德里大学", exp4_title: "平面设计师", exp4_company: "Spandan'24, 德什班杜学院", awards_title: "奖项与认可", award1_title: "国家英才奖学金", award1_desc: "因在西特里普拉区获得第四名而获奖。", award2_title: "莫迪总理的赞赏信", award2_desc: "因参与 'Pariksha Pe Charcha'。", award3_title: "元宇宙创造者计划", award3_desc: "第一阶段完成 (AICTE-Meta-1M1B 倡议)。", award4_title: "认证", award4_desc: "哈佛大学X: CS50计算机科学入门 & 谷歌数据分析", skills_title: "个人技能", skill_basic: "基础", skill_intermediate: "中级", skill_advance: "高级", skill_expert: "专家", skill_r: "R语言编程", skill_web: "网页设计", skill_video: "视频编辑", skill_graphic: "平面设计", skill_data: "数据分析", skill_creative: "创意艺术", skill_leadership: "领导力", process_title: "创作过程", process1_title: "1. 构思与脚本编写", process1_desc: "该过程从创意写作和视频脚本编写开始，为任何项目（无论是视频还是设计活动）建立坚实的叙事基础。", process2_title: "2. 设计与开发", process2_desc: "凭借对细节的敏锐洞察力，我使用Canva和前端技术等工具开发图形和网页布局。对于视频，我处理从原始摄像到最终剪辑的整个流程。", process3_title: "3. 执行与交付", process3_desc: "专注于创建符合品牌准则的精美、有凝聚力的营销材料。致力于按时交付，以确保客户满意度和项目成功。", projects_title: "项目作品集", project1_title: "内容与社交媒体", project1_client: "客户: P.G.D.A.V. 学院", project1_desc: "作为技术部的联合负责人，我开发了引人入胜的视频内容，为年度杂志和社交媒体创建了图形，并为电子通讯 'अनुरनन' 管理了Instagram。", project2_title: "营销与设计", project2_client: "客户: 德里动漫俱乐部", project2_desc: "作为一名平面设计师实习生，我协助创建有凝聚力的营销材料。我的职责包括培养对细节的敏锐洞察力，并交付符合品牌准则的精美设计。", project3_title: "社交媒体图形", project3_client: "客户: Spandan'24, 德什班杜学院", project3_desc: "在Spandan'24文化节期间，我担任他们Instagram形象的平面设计师，创作了充满活力的视觉效果来宣传活动并与学生社区互动。", contact_title: "谢谢", contact_subtitle: "联系信息", languages_title: "语言", lang_eng: "英语", lang_ben: "孟加拉语", lang_hin: "印地语", lang_eng_level: "高级 (C1)", lang_ben_level: "双语 (C2)", lang_hin_level: "中高级 (B2)" },
+                ja: { landing_title: "ポートフォリオ", landing_name: "ディープタヌ・カルマカル", landing_subtitle: "学部生", landing_enter: "入る", footer_text: "©️ ディープタヌ・K", overview_title: "ポートフォリオ", overview_subtitle: "概要", nav_about: "私について", nav_experience: "職務経歴", nav_skills: "個人的なスキル", nav_projects: "プロジェクト", nav_vision: "ビジョン", nav_education: "学歴", nav_awards: "受賞歴", nav_process: "クリエイティブプロセス", nav_contact: "連絡先", about_title: "私について", about_text: "CGPA 5.63の数学優等卒業生。データラングリング、統計モデリング、データ視覚化のためのRプログラミングに強い。フロントエンドウェブ開発、ビデオ編集、さまざまなマルチメディアツールに習熟。執筆、絵画、彫刻を通じて優れたコミュニケーションスキルと実証済みの創造的思考を持つリーダーとして認められています。", vision_title: "ビジョン", vision_text: "継続的な学習を通じて革新的なソリューションを推進するために、分析能力と創造的スキルを活用すること。データ分析、ウェブ開発、マルチメディア制作における私の習熟度を適用できる挑戦的な役割を求めています。魅力的なプロジェクトに貢献し、洗練されたタイムリーな結果を提供し、継続的にスキルセットを拡大することを目指しています。", education_title: "学歴", education_degree: "理学士（数学）", education_college: "P.G.D.A.V.カレッジ、デリー大学 (CGPA: 5.63)", education_xii: "12年生（理科）", education_x: "10年生", education_school: "ウマカンタ・アカデミー・イングリッシュ・ミディアム、アガルタラ", experience_title: "職務経歴", exp1_title: "技術部門共同責任者", exp1_company: "P.G.D.A.V.カレッジ、デリー大学", exp2_title: "グラフィックデザイナーインターン", exp2_company: "デリー・アニメ・クラブ", exp3_title: "デザインエディター（Eニュースレター：「अनुरनन」）", exp3_company: "P.G.D.A.V.カレッジ、デリー大学", exp4_title: "グラフィックデザイナー", exp4_company: "スパンダン'24、デシュバンドゥ・カレッジ", awards_title: "受賞歴", award1_title: "全国手段・メリット奨学金", award1_desc: "西トリプラ地区で4位を獲得したことで授与。", award2_title: "モディ首相からの感謝状", award2_desc: "「Pariksha Pe Charcha」への参加に対して。", award3_title: "メタバースプログラムのクリエイター", award3_desc: "フェーズ1完了（AICTE-Meta-1M1Bイニシアチブ）。", award4_title: "認定資格", award4_desc: "HarvardX：CS50のコンピュータサイエンス入門＆Googleデータ分析", skills_title: "個人的なスキル", skill_basic: "基本", skill_intermediate: "中級", skill_advance: "上級", skill_expert: "専門家", skill_r: "Rプログラミング", skill_web: "ウェブデザイン", skill_video: "ビデオ編集", skill_graphic: "グラフィックデザイン", skill_data: "データ分析", skill_creative: "クリエイティブアート", skill_leadership: "リーダーシップ", process_title: "クリエイティブプロセス", process1_title: "1. アイデア出しとスクリプト作成", process1_desc: "プロセスは、ビデオであろうとデザインキャンペーンであろうと、あらゆるプロジェクトの強力な物語の基盤を構築するためのクリエイティブライティングとビデオスクリプト作成から始まります。", process2_title: "2. デザインと開発", process2_desc: "細部への鋭い目を活用して、Canvaやフロントエンド技術などのツールを使用してグラフィックやウェブレイアウトを開発します。ビデオについては、生のビデオ撮影から最終編集までのパイプライン全体を処理します。", process3_title: "3. 実行と納品", process3_desc: "ブランドガイドラインに準拠した、洗練されたまとまりのあるマーケティング資料の作成に焦点を当てています。クライアントの満足度とプロジェクトの成功を確実にするために、タイムリーな納品にコミットしています。", projects_title: "プロジェクトポートフォリオ", project1_title: "コンテンツとソーシャルメディア", project1_client: "クライアント：P.G.D.A.V.カレッジ", project1_desc: "技術部門の共同責任者として、魅力的なビデオコンテンツを開発し、年次雑誌やソーシャルメディア用のグラフィックを作成し、Eニュースレター「अनुरनन」のInstagramを管理しました。", project2_title: "マーケティングとデザイン", project2_client: "クライアント：デリー・アニメ・クラブ", project2_desc: "グラフィックデザイナーインターンとして、まとまりのあるマーケティング資料の作成を支援しました。私の役割は、細部への鋭い目を養い、ブランドガイドラインに準拠した洗練されたデザインを提供することでした。", project3_title: "ソーシャルメディアグラフィック", project3_client: "クライアント：スパンダン'24、デシュバンドゥ・カレッジ", project3_desc: "スパンダン'24文化祭では、Instagramのグラフィックデザイナーを務め、イベントを宣伝し、学生コミュニティと交流するための活気に満ちたビジュアルを作成しました。", contact_title: "ありがとうございました", contact_subtitle: "連絡先情報", languages_title: "言語", lang_eng: "英語", lang_ben: "ベンガル語", lang_hin: "ヒンディー語", lang_eng_level: "上級 (C1)", lang_ben_level: "バイリンガル (C2)", lang_hin_level: "中上級 (B2)" },
+                ko: { landing_title: "포트폴리오", landing_name: "디프타누 카르마카르", landing_subtitle: "학부생", landing_enter: "입장", footer_text: "©️ 디프타누 K.", overview_title: "포트폴리오", overview_subtitle: "개요", nav_about: "자기소개", nav_experience: "업무 경험", nav_skills: "개인 기술", nav_projects: "프로젝트", nav_vision: "비전", nav_education: "학력", nav_awards: "수상 및 표창", nav_process: "창의적 과정", nav_contact: "연락처", about_title: "자기소개", about_text: "CGPA 5.63의 열정적인 수학과 우등 졸업생. 데이터 랭글링, 통계 모델링 및 데이터 시각화를 위한 R 프로그래밍에 강합니다. 프론트엔드 웹 개발, 비디오 편집 및 다양한 멀티미디어 도구에 능숙합니다. 글쓰기, 그림 그리기, 조각을 통해 뛰어난 의사소통 기술과 입증된 창의적 사고를 갖춘 인정받는 리더입니다.", vision_title: "비전", vision_text: "지속적인 학습을 통해 혁신적인 솔루션을 주도하기 위해 분석 능력과 창의적 기술을 활용합니다. 데이터 분석, 웹 개발 및 멀티미디어 제작에 대한 저의 능숙함을 적용할 수 있는 도전적인 역할을 찾고 있습니다. 매력적인 프로젝트에 기여하고, 세련되고 시기적절한 결과를 제공하며, 지속적으로 제 기술을 확장하는 것을 목표로 합니다.", education_title: "학력", education_degree: "수학 이학사", education_college: "P.G.D.A.V. 대학, 델리 대학교 (CGPA: 5.63)", education_xii: "12학년 (과학)", education_x: "10학년", education_school: "우마칸타 아카데미 영어 매체, 아가르탈라", experience_title: "업무 경험", exp1_title: "기술부 공동 책임자", exp1_company: "P.G.D.A.V. 대학, 델리 대학교", exp2_title: "그래픽 디자이너 인턴", exp2_company: "델리 애니메이션 클럽", exp3_title: "디자인 편집자 (E-뉴스레터: 'अनुरनन')", exp3_company: "P.G.D.A.V. 대학, 델리 대학교", exp4_title: "그래픽 디자이너", exp4_company: "스판단'24, 데슈반두 대학", awards_title: "수상 및 표창", award1_title: "전국 수단 겸 장학금", award1_desc: "서 트리푸라 지역에서 4위를 차지하여 수여됨.", award2_title: "모디 총리의 감사 편지", award2_desc: "'파릭샤 페 차르차' 참여에 대해.", award3_title: "메타버스 프로그램의 창작자", award3_desc: "1단계 완료 (AICTE-Meta-1M1B 이니셔티브).", award4_title: "자격증", award4_desc: "HarvardX: CS50의 컴퓨터 과학 입문 & 구글 데이터 분석", skills_title: "개인 기술", skill_basic: "기초", skill_intermediate: "중급", skill_advance: "고급", skill_expert: "전문가", skill_r: "R 프로그래밍", skill_web: "웹 디자인", skill_video: "비디오 편집", skill_graphic: "그래픽 디자인", skill_data: "데이터 분석", skill_creative: "창작 예술", skill_leadership: "리더십", process_title: "창의적 과정", process1_title: "1. 아이디어 구상 및 스크립트 작성", process1_desc: "이 과정은 창의적인 글쓰기와 비디오 스크립트 작성으로 시작하여 비디오든 디자인 캠페인이든 모든 프로젝트에 대한 강력한 서사적 기반을 구축합니다.", process2_title: "2. 디자인 및 개발", process2_desc: "세부 사항에 대한 예리한 안목을 활용하여 Canva 및 프론트엔드 기술과 같은 도구를 사용하여 그래픽 및 웹 레이아웃을 개발합니다. 비디오의 경우 원시 비디오 촬영에서 최종 편집까지 전체 파이프라인을 처리합니다.", process3_title: "3. 실행 및 전달", process3_desc: "브랜드 지침을 준수하는 세련되고 응집력 있는 마케팅 자료를 만드는 데 중점을 둡니다. 고객 만족과 프로젝트 성공을 보장하기 위해 시기적절한 전달에 전념합니다.", projects_title: "프로젝트 포트폴리오", project1_title: "콘텐츠 및 소셜 미디어", project1_client: "클라이언트: P.G.D.A.V. 대학", project1_desc: "기술부 공동 책임자로서 매력적인 비디오 콘텐츠를 개발하고, 연례 잡지 및 소셜 미디어를 위한 그래픽을 제작했으며, E-뉴스레터 'अनुरनन'의 인스타그램을 관리했습니다.", project2_title: "마케팅 및 디자인", project2_client: "클라이언트: 델리 애니메이션 클럽", project2_desc: "그래픽 디자이너 인턴으로서 응집력 있는 마케팅 자료를 만드는 데 도움을 주었습니다. 제 역할은 세부 사항에 대한 예리한 안목을 개발하고 브랜드 지침을 준수하는 세련된 디자인을 제공하는 것이었습니다.", project3_title: "소셜 미디어 그래픽", project3_client: "클라이언트: 스판단'24, 데슈반두 대학", project3_desc: "스판단'24 문화 축제를 위해 저는 그들의 인스타그램 존재감을 위한 그래픽 디자이너로 일하며, 행사를 홍보하고 학생 커뮤니티와 소통하기 위한 활기찬 비주얼을 제작했습니다.", contact_title: "감사합니다", contact_subtitle: "연락처 정보", languages_title: "언어", lang_eng: "영어", lang_ben: "벵골어", lang_hin: "힌디어", lang_eng_level: "고급 (C1)", lang_ben_level: "이중 언어 (C2)", lang_hin_level: "상급 중급 (B2)" },
+                es: { landing_title: "Portafolio", landing_name: "Deeptanu Karmakar", landing_subtitle: "Estudiante de Pregrado", landing_enter: "Entrar", footer_text: "©️ Deeptanu K.", overview_title: "Portafolio", overview_subtitle: "RESUMEN", nav_about: "Sobre Mí", nav_experience: "Experiencia Laboral", nav_skills: "Habilidades Personales", nav_projects: "Proyectos", nav_vision: "Visión", nav_education: "Educación", nav_awards: "Premios y Reconocimientos", nav_process: "Proceso Creativo", nav_contact: "Contacto", about_title: "Sobre Mí", about_text: "Apasionado graduado con honores en matemáticas con un CGPA de 5.63. Sólido en programación en R para la manipulación de datos, modelado estadístico y visualización de datos. Competente en desarrollo web front-end, edición de video y diversas herramientas multimedia. Líder reconocido con excelentes habilidades de comunicación y pensamiento creativo probado a través de la escritura, la pintura y la escultura.", vision_title: "Visión", vision_text: "Aprovechar las capacidades analíticas y las habilidades creativas para impulsar soluciones innovadoras a través del aprendizaje continuo. Buscar roles desafiantes donde pueda aplicar mi competencia en análisis de datos, desarrollo web y producción multimedia. Mi objetivo es contribuir a proyectos atractivos, entregar resultados pulidos y oportunos, y expandir continuamente mi conjunto de habilidades.", education_title: "Formación Académica", education_degree: "Licenciatura en Ciencias de las Matemáticas", education_college: "P.G.D.A.V. College, Universidad de Delhi (CGPA: 5.63)", education_xii: "Clase XII (Ciencias)", education_x: "Clase X", education_school: "Umakanta Academy English Medium, Agartala", experience_title: "Experiencia Laboral", exp1_title: "Co-Jefe, Departamento de Tecnología", exp1_company: "P.G.D.A.V. College, Universidad de Delhi", exp2_title: "Pasante de Diseñador Gráfico", exp2_company: "Club de Anime de Delhi", exp3_title: "Editor de Diseño (Boletín Electrónico: 'अनुरनन')", exp3_company: "P.G.D.A.V. College, Universidad de Delhi", exp4_title: "Diseñador Gráfico", exp4_company: "Spandan'24, Deshbandhu College", awards_title: "Premios y Reconocimientos", award1_title: "Beca Nacional de Medios y Mérito", award1_desc: "Otorgada por asegurar el 4º puesto en el distrito de West Tripura.", award2_title: "Carta de Agradecimiento del PM Modi", award2_desc: "Por la participación en 'Pariksha Pe Charcha'.", award3_title: "Programa Creadores del Metaverso", award3_desc: "Finalización de la Fase 1 (iniciativa AICTE-Meta-1M1B).", award4_title: "Certificaciones", award4_desc: "HarvardX: Introducción a la CS de CS50 y Análisis de Datos de Google", skills_title: "Habilidades Personales", skill_basic: "Básico", skill_intermediate: "Intermedio", skill_advance: "Avanzado", skill_expert: "Experto", skill_r: "Programación en R", skill_web: "Diseño Web", skill_video: "Edición de Video", skill_graphic: "Diseño Gráfico", skill_data: "Análisis de Datos", skill_creative: "Artes Creativas", skill_leadership: "Liderazgo", process_title: "Proceso Creativo", process1_title: "1. Ideación y Guionización", process1_desc: "El proceso comienza con la escritura creativa y la guionización de videos para construir una base narrativa sólida para cualquier proyecto, ya sea un video o una campaña de diseño.", process2_title: "2. Diseño y Desarrollo", process2_desc: "Aprovechando un agudo ojo para el detalle, desarrollo gráficos y diseños web utilizando herramientas como Canva y tecnologías front-end. Para el video, manejo todo el proceso desde la videografía en bruto hasta las ediciones finales.", process3_title: "3. Ejecución y Entrega", process3_desc: "Enfoque en la creación de material de marketing pulido y cohesivo que se adhiere a las directrices de la marca. Comprometido con la entrega oportuna para garantizar la satisfacción del cliente y el éxito del proyecto.", projects_title: "Portafolio de Proyectos", project1_title: "Contenido y Redes Sociales", project1_client: "CLIENTE: P.G.D.A.V. College", project1_desc: "Como Co-Jefe del Departamento de Tecnología, desarrollé contenido de video atractivo, creé gráficos para la revista anual y las redes sociales, y gestioné el Instagram del Boletín Electrónico 'अनुरनन'.", project2_title: "Marketing y Diseño", project2_client: "CLIENTE: Club de Anime de Delhi", project2_desc: "Como pasante de diseñador gráfico, ayudé a crear material de marketing cohesivo. Mi rol implicaba desarrollar un agudo ojo para el detalle y entregar diseños pulidos que se adhirieran a las directrices de la marca.", project3_title: "Gráficos para Redes Sociales", project3_client: "CLIENTE: Spandan'24, Deshbandhu College", project3_desc: "Para el festival cultural Spandan'24, serví como Diseñador Gráfico para su presencia en Instagram, creando visuales vibrantes para promover el evento e interactuar con la comunidad estudiantil.", contact_title: "Gracias", contact_subtitle: "INFORMACIÓN DE CONTACTO", languages_title: "Idiomas", lang_eng: "Inglés", lang_ben: "Bengalí", lang_hin: "Hindi", lang_eng_level: "Avanzado (C1)", lang_ben_level: "Bilingüe (C2)", lang_hin_level: "Intermedio Alto (B2)" },
+                it: { landing_title: "Portfolio", landing_name: "Deeptanu Karmakar", landing_subtitle: "Studente Universitario", landing_enter: "Entra", footer_text: "©️ Deeptanu K.", overview_title: "Portfolio", overview_subtitle: "PANORAMICA", nav_about: "Chi Sono", nav_experience: "Esperienza Lavorativa", nav_skills: "Competenze Personali", nav_projects: "Progetti", nav_vision: "Visione", nav_education: "Formazione", nav_awards: "Premi e Riconoscimenti", nav_process: "Processo Creativo", nav_contact: "Contatti", about_title: "Chi Sono", about_text: "Appassionato laureato con lode in matematica con un CGPA di 5.63. Forte nella programmazione in R per la manipolazione dei dati, la modellazione statistica e la visualizzazione dei dati. Competente nello sviluppo web front-end, nel montaggio video e in vari strumenti multimediali. Leader riconosciuto con eccellenti capacità di comunicazione e pensiero creativo dimostrato attraverso la scrittura, la pittura e la scultura.", vision_title: "Visione", vision_text: "Sfruttare le capacità analitiche e le competenze creative per guidare soluzioni innovative attraverso l'apprendimento continuo. Cercare ruoli sfidanti in cui posso applicare la mia competenza nell'analisi dei dati, nello sviluppo web e nella produzione multimediale. Il mio obiettivo è contribuire a progetti coinvolgenti, fornire risultati rifiniti e tempestivi e espandere continuamente le mie competenze.", education_title: "Formazione Scolastica", education_degree: "Laurea in Scienze Matematiche", education_college: "P.G.D.A.V. College, Università di Delhi (CGPA: 5.63)", education_xii: "Classe XII (Scienze)", education_x: "Classe X", education_school: "Umakanta Academy English Medium, Agartala", experience_title: "Esperienza Lavorativa", exp1_title: "Co-Responsabile, Dipartimento di Tecnologia", exp1_company: "P.G.D.A.V. College, Università di Delhi", exp2_title: "Stagista Graphic Designer", exp2_company: "Delhi Anime Club", exp3_title: "Editor di Design (E-Newsletter: 'अनुरनन')", exp3_company: "P.G.D.A.V. College, Università di Delhi", exp4_title: "Graphic Designer", exp4_company: "Spandan'24, Deshbandhu College", awards_title: "Premi e Riconoscimenti", award1_title: "Borsa di Studio Nazionale Means-Cum-Merit", award1_desc: "Premiato per aver ottenuto il 4° posto nel distretto di West Tripura.", award2_title: "Lettera di Apprezzamento dal PM Modi", award2_desc: "Per la partecipazione a 'Pariksha Pe Charcha'.", award3_title: "Programma Creatori del Metaverso", award3_desc: "Completamento della Fase 1 (iniziativa AICTE-Meta-1M1B).", award4_title: "Certificazioni", award4_desc: "HarvardX: Introduzione alla CS di CS50 e Analisi dei Dati di Google", skills_title: "Competenze Personali", skill_basic: "Base", skill_intermediate: "Intermedio", skill_advance: "Avanzato", skill_expert: "Esperto", skill_r: "Programmazione R", skill_web: "Web Design", skill_video: "Montaggio Video", skill_graphic: "Graphic Design", skill_data: "Analisi dei Dati", skill_creative: "Arti Creative", skill_leadership: "Leadership", process_title: "Processo Creativo", process1_title: "1. Ideazione e Sceneggiatura", process1_desc: "Il processo inizia con la scrittura creativa e la sceneggiatura video per costruire una solida base narrativa per qualsiasi progetto, che si tratti di un video o di una campagna di design.", process2_title: "2. Design e Sviluppo", process2_desc: "Sfruttando un occhio attento ai dettagli, sviluppo grafiche e layout web utilizzando strumenti come Canva e tecnologie front-end. Per i video, gestisco l'intera pipeline dalla videografia grezza al montaggio finale.", process3_title: "3. Esecuzione e Consegna", process3_desc: "Focus sulla creazione di materiale di marketing rifinito e coeso che aderisce alle linee guida del marchio. Impegnato nella consegna puntuale per garantire la soddisfazione del cliente e il successo del progetto.", projects_title: "Portfolio Progetti", project1_title: "Contenuti e Social Media", project1_client: "CLIENTE: P.G.D.A.V. College", project1_desc: "Come Co-Responsabile del Dipartimento di Tecnologia, ho sviluppato contenuti video coinvolgenti, creato grafiche per la rivista annuale e i social media, e gestito l'Instagram per l'E-Newsletter 'अनुरनन'.", project2_title: "Marketing e Design", project2_client: "CLIENTE: Delhi Anime Club", project2_desc: "Come stagista graphic designer, ho assistito nella creazione di materiale di marketing coeso. Il mio ruolo prevedeva lo sviluppo di un occhio attento ai dettagli e la consegna di design rifiniti che aderivano alle linee guida del marchio.", project3_title: "Grafiche per Social Media", project3_client: "CLIENTE: Spandan'24, Deshbandhu College", project3_desc: "Per il festival culturale Spandan'24, ho lavorato come Graphic Designer per la loro presenza su Instagram, creando visual vivaci per promuovere l'evento e interagire con la comunità studentesca.", contact_title: "Grazie", contact_subtitle: "INFORMAZIONI DI CONTATTO", languages_title: "Lingue", lang_eng: "Inglese", lang_ben: "Bengalese", lang_hin: "Hindi", lang_eng_level: "Avanzato (C1)", lang_ben_level: "Bilingue (C2)", lang_hin_level: "Intermedio Superiore (B2)" },
+                fr: { landing_title: "Portfolio", landing_name: "Deeptanu Karmakar", landing_subtitle: "Étudiant de Premier Cycle", landing_enter: "Entrer", footer_text: "©️ Deeptanu K.", overview_title: "Portfolio", overview_subtitle: "APERÇU", nav_about: "À Propos de Moi", nav_experience: "Expérience Professionnelle", nav_skills: "Compétences Personnelles", nav_projects: "Projets", nav_vision: "Vision", nav_education: "Formation", nav_awards: "Prix et Reconnaissances", nav_process: "Processus Créatif", nav_contact: "Contact", about_title: "À Propos de Moi", about_text: "Diplômé passionné en mathématiques avec mention et un CGPA de 5.63. Solide en programmation R pour la manipulation de données, la modélisation statistique et la visualisation de données. Compétent en développement web front-end, en montage vidéo et dans divers outils multimédias. Leader reconnu avec d'excellentes compétences en communication et une pensée créative éprouvée par l'écriture, la peinture et la sculpture.", vision_title: "Vision", vision_text: "Mettre à profit mes capacités d'analyse et mes compétences créatives pour piloter des solutions innovantes grâce à un apprentissage continu. Rechercher des postes stimulants où je peux appliquer ma maîtrise de l'analyse de données, du développement web et de la production multimédia. Mon objectif est de contribuer à des projets stimulants, de livrer des résultats soignés et dans les délais, et d'élargir continuellement mes compétences.", education_title: "Parcours Éducatif", education_degree: "Licence en Sciences Mathématiques", education_college: "P.G.D.A.V. College, Université de Delhi (CGPA: 5.63)", education_xii: "Classe XII (Sciences)", education_x: "Classe X", education_school: "Umakanta Academy English Medium, Agartala", experience_title: "Expérience Professionnelle", exp1_title: "Co-Directeur, Département de Technologie", exp1_company: "P.G.D.A.V. College, Université de Delhi", exp2_title: "Stagiaire Designer Graphique", exp2_company: "Delhi Anime Club", exp3_title: "Éditeur de Design (E-Newsletter : 'अनुरनन')", exp3_company: "P.G.D.A.V. College, Université de Delhi", exp4_title: "Designer Graphique", exp4_company: "Spandan'24, Deshbandhu College", awards_title: "Prix et Reconnaissances", award1_title: "Bourse Nationale au Mérite", award1_desc: "Décernée pour avoir obtenu le 4ème rang dans le district de West Tripura.", award2_title: "Lettre d'Appréciation du PM Modi", award2_desc: "Pour la participation à 'Pariksha Pe Charcha'.", award3_title: "Programme des Créateurs du Métavers", award3_desc: "Phase 1 terminée (initiative AICTE-Meta-1M1B).", award4_title: "Certifications", award4_desc: "HarvardX : Introduction à l'Informatique de CS50 et Analyse de Données de Google", skills_title: "Compétences Personnelles", skill_basic: "Basique", skill_intermediate: "Intermédiaire", skill_advance: "Avancé", skill_expert: "Expert", skill_r: "Programmation R", skill_web: "Conception Web", skill_video: "Montage Vidéo", skill_graphic: "Design Graphique", skill_data: "Analyse de Données", skill_creative: "Arts Créatifs", skill_leadership: "Leadership", process_title: "Processus Créatif", process1_title: "1. Idéation et Scénarisation", process1_desc: "Le processus commence par l'écriture créative et la scénarisation de vidéos pour construire une base narrative solide pour tout projet, qu'il s'agisse d'une vidéo ou d'une campagne de design.", process2_title: "2. Conception et Développement", process2_desc: "En tirant parti d'un œil aiguisé pour les détails, je développe des graphiques et des mises en page web en utilisant des outils comme Canva et des technologies front-end. Pour la vidéo, je gère l'ensemble du pipeline, de la vidéographie brute au montage final.", process3_title: "3. Exécution et Livraison", process3_desc: "Concentration sur la création de supports marketing soignés et cohérents qui respectent les directives de la marque. Engagé à livrer dans les délais pour assurer la satisfaction du client et le succès du projet.", projects_title: "Portfolio de Projets", project1_title: "Contenu et Médias Sociaux", project1_client: "CLIENT : P.G.D.A.V. College", project1_desc: "En tant que Co-Directeur du Département de Technologie, j'ai développé du contenu vidéo engageant, créé des graphiques pour le magazine annuel et les médias sociaux, et géré l'Instagram de l'E-Newsletter 'अनुरनन'.", project2_title: "Marketing et Design", project2_client: "CLIENT : Delhi Anime Club", project2_desc: "En tant que stagiaire designer graphique, j'ai aidé à créer des supports marketing cohérents. Mon rôle consistait à développer un œil aiguisé pour les détails et à livrer des designs soignés qui respectaient les directives de la marque.", project3_title: "Graphiques pour les Médias Sociaux", project3_client: "CLIENT : Spandan'24, Deshbandhu College", project3_desc: "Pour le festival culturel Spandan'24, j'ai servi de Designer Graphique pour leur présence sur Instagram, créant des visuels dynamiques pour promouvoir l'événement et interagir avec la communauté étudiante.", contact_title: "Merci", contact_subtitle: "INFORMATIONS DE CONTACT", languages_title: "Langues", lang_eng: "Anglais", lang_ben: "Bengali", lang_hin: "Hindi", lang_eng_level: "Avancé (C1)", lang_ben_level: "Bilingue (C2)", lang_hin_level: "Intermédiaire Supérieur (B2)" },
+                ar: { landing_title: "ملف أعمال", landing_name: "ديبتانو كارماكار", landing_subtitle: "طالب جامعي", landing_enter: "ادخل", footer_text: "©️ ديبتانو ك.", overview_title: "ملف أعمال", overview_subtitle: "نظرة عامة", nav_about: "عني", nav_experience: "خبرة العمل", nav_skills: "المهارات الشخصية", nav_projects: "المشاريع", nav_vision: "الرؤية", nav_education: "التعليم", nav_awards: "الجوائز والتقديرات", nav_process: "العملية الإبداعية", nav_contact: "اتصل", about_title: "عني", about_text: "خريج رياضيات بمرتبة الشرف شغوف بمعدل تراكمي 5.63. قوي في برمجة R لمعالجة البيانات والنمذجة الإحصائية وتصور البيانات. بارع في تطوير الويب للواجهة الأمامية وتحرير الفيديو وأدوات الوسائط المتعددة المختلفة. قائد معترف به يتمتع بمهارات اتصال ممتازة وتفكير إبداعي مثبت من خلال الكتابة والرسم والنحت.", vision_title: "الرؤية", vision_text: "الاستفادة من القدرات التحليلية والمهارات الإبداعية لدفع الحلول المبتكرة من خلال التعلم المستمر. البحث عن أدوار صعبة حيث يمكنني تطبيق كفاءتي في تحليل البيانات وتطوير الويب وإنتاج الوسائط المتعددة. أهدف إلى المساهمة في مشاريع جذابة وتقديم نتائج مصقولة وفي الوقت المناسب وتوسيع مجموعة مهاراتي باستمرار.", education_title: "الخلفية التعليمية", education_degree: "بكالوريوس العلوم في الرياضيات", education_college: "كلية P.G.D.A.V.، جامعة دلهي (المعدل التراكمي: 5.63)", education_xii: "الصف الثاني عشر (علوم)", education_x: "الصف العاشر", education_school: "أكاديمية أوماكانتا الإنجليزية المتوسطة، أغارتالا", experience_title: "خبرة العمل", exp1_title: "رئيس مشارك، قسم التكنولوجيا", exp1_company: "كلية P.G.D.A.V.، جامعة دلهي", exp2_title: "مصمم جرافيك متدرب", exp2_company: "نادي دلهي للأنمي", exp3_title: "محرر تصميم (النشرة الإلكترونية: 'अनुरनन')", exp3_company: "كلية P.G.D.A.V.، جامعة دلهي", exp4_title: "مصمم جرافيك", exp4_company: "سباندان'24، كلية ديشباندو", awards_title: "الجوائز والتقديرات", award1_title: "منحة الاستحقاق الوطنية", award1_desc: "مُنحت لتأمين المرتبة الرابعة في منطقة غرب تريبورا.", award2_title: "رسالة تقدير من رئيس الوزراء مودي", award2_desc: "للمشاركة في 'باريكشا بي تشارتشا'.", award3_title: "برنامج مبدعي الميتافيرس", award3_desc: "إكمال المرحلة الأولى (مبادرة AICTE-Meta-1M1B).", award4_title: "الشهادات", award4_desc: "HarvardX: مقدمة CS50 في علوم الكمبيوتر وتحليل بيانات جوجل", skills_title: "المهارات الشخصية", skill_basic: "أساسي", skill_intermediate: "متوسط", skill_advance: "متقدم", skill_expert: "خبير", skill_r: "برمجة R", skill_web: "تصميم الويب", skill_video: "تحرير الفيديو", skill_graphic: "تصميم الجرافيك", skill_data: "تحليل البيانات", skill_creative: "الفنون الإبداعية", skill_leadership: "القيادة", process_title: "العملية الإبداعية", process1_title: "1. التفكير وكتابة السيناريو", process1_desc: "تبدأ العملية بالكتابة الإبداعية وكتابة سيناريو الفيديو لبناء أساس سردي قوي لأي مشروع، سواء كان فيديو أو حملة تصميم.", process2_title: "2. التصميم والتطوير", process2_desc: "بالاستفادة من العين الثاقبة للتفاصيل، أقوم بتطوير الرسومات وتخطيطات الويب باستخدام أدوات مثل Canva وتقنيات الواجهة الأمامية. بالنسبة للفيديو، أتولى العملية بأكملها من التصوير الخام إلى التعديلات النهائية.", process3_title: "3. التنفيذ والتسليم", process3_desc: "التركيز على إنشاء مواد تسويقية مصقولة ومتماسكة تلتزم بإرشادات العلامة التجارية. ملتزم بالتسليم في الوقت المحدد لضمان رضا العملاء ونجاح المشروع.", projects_title: "ملف المشاريع", project1_title: "المحتوى ووسائل التواصل الاجتماعي", project1_client: "العميل: كلية P.G.D.A.V.", project1_desc: "بصفتي رئيسًا مشاركًا لقسم التكنولوجيا، قمت بتطوير محتوى فيديو جذاب، وإنشاء رسومات للمجلة السنوية ووسائل التواصل الاجتماعي، وإدارة Instagram للنشرة الإلكترونية 'अनुरनन'.", project2_title: "التسويق والتصميم", project2_client: "العميل: نادي دلهي للأنمي", project2_desc: "كمصمم جرافيك متدرب، ساعدت في إنشاء مواد تسويقية متماسكة. تضمن دوري تطوير عين ثاقبة للتفاصيل وتقديم تصميمات مصقولة تلتزم بإرشادات العلامة التجارية.", project3_title: "رسومات وسائل التواصل الاجتماعي", project3_client: "العميل: سباندان'24، كلية ديشباندو", project3_desc: "لمهرجان سباندان'24 الثقافي، عملت كمصمم جرافيك لوجودهم على Instagram، حيث قمت بإنشاء صور مرئية نابضة بالحياة للترويج للحدث والتفاعل مع مجتمع الطلاب.", contact_title: "شكرًا لك", contact_subtitle: "معلومات الاتصال", languages_title: "اللغات", lang_eng: "الإنجليزية", lang_ben: "البنغالية", lang_hin: "الهندية", lang_eng_level: "متقدم (C1)", lang_ben_level: "ثنائي اللغة (C2)", lang_hin_level: "فوق المتوسط (B2)" }
+            };
+
+            // Language names for the dropdown menu
+            const languages = { 
+                en: "English", bn: "বাংলা", hi: "हिन्दी", te: "తెలుగు", ta: "தமிழ்", kn: "ಕನ್ನಡ", 
+                zh: "中文", ja: "日本語", ko: "한국어", es: "Español", it: "Italiano", fr: "Français", ar: "العربية"
+            };
+
+            // DOM Element selectors
+            const homeLink = document.getElementById('homeLink');
+            const themeToggle = document.getElementById('theme-toggle');
+            const sunIcon = document.getElementById('sun-icon');
+            const moonIcon = document.getElementById('moon-icon');
+            const translateButton = document.getElementById('translate-button');
+            const translateDropdown = document.getElementById('translate-dropdown');
+            const rewriteButton = document.getElementById('rewrite-button');
+            const aiModalOverlay = document.getElementById('ai-modal-overlay');
+            const aiModal = document.getElementById('ai-modal');
+            const aiModalClose = document.getElementById('ai-modal-close');
+            
+            let currentPage = 'landing';
+
+            // --- TRANSLATION LOGIC ---
+            function setLanguage(lang) {
+                const langData = translations[lang] || translations.en;
+                document.querySelectorAll('[data-translate]').forEach(el => {
+                    const key = el.dataset.translate;
+                    // Use English as a fallback for missing keys
+                    el.textContent = langData[key] || translations.en[key] || '';
+                });
+                localStorage.setItem('language', lang);
+                translateDropdown.classList.remove('dropdown-visible');
+            }
+
+            function populateDropdown() {
+                translateDropdown.innerHTML = '';
+                for (const [code, name] of Object.entries(languages)) {
+                    const button = document.createElement('button');
+                    button.textContent = name;
+                    button.onclick = () => setLanguage(code);
+                    translateDropdown.appendChild(button);
+                }
+            }
+            
+            translateButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                translateDropdown.classList.toggle('dropdown-visible');
+            });
+            
+            document.addEventListener('click', (e) => {
+                if (!translateDropdown.contains(e.target) && !translateButton.contains(e.target)) {
+                    translateDropdown.classList.remove('dropdown-visible');
+                }
+            });
+
+            // --- THEME LOGIC ---
+            const applyTheme = (isDarkMode) => {
+                document.body.classList.toggle('dark-mode', isDarkMode);
+                sunIcon.style.display = isDarkMode ? 'block' : 'none';
+                moonIcon.style.display = isDarkMode ? 'none' : 'block';
+            };
+            themeToggle.addEventListener('click', () => {
+                const isDarkMode = !document.body.classList.contains('dark-mode');
+                localStorage.setItem('darkMode', isDarkMode);
+                applyTheme(isDarkMode);
+            });
+
+            // --- PAGE NAVIGATION ---
+            window.navigateTo = (pageId) => {
+                document.getElementById(currentPage)?.classList.remove('active');
+                
+                const newPageElement = document.getElementById(pageId);
+                if (newPageElement) newPageElement.classList.add('active');
+                
+                currentPage = pageId;
+                homeLink.style.display = (pageId === 'landing' || pageId === 'overview') ? 'none' : 'block';
+                
+                // Trigger animations on the new page
+                const newTimelineEntries = newPageElement.querySelectorAll('.timeline-entry');
+                if (newTimelineEntries.length > 0) {
+                    newTimelineEntries.forEach((entry, index) => {
+                        setTimeout(() => entry.classList.add('is-visible'), index * 150); 
+                    });
+                }
+                
+                if (pageId === 'skills' || pageId === 'education') animateSkills();
+                
+                // Update 3D background
+                if (window.moveCameraTo) moveCameraTo(pageId);
+                window.scrollTo(0, 0);
+            };
+            
+            homeLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                navigateTo('overview');
+            });
+
+            // --- ANIMATION LOGIC ---
+            const animateSkills = () => {
+                document.querySelectorAll('.skill-item').forEach(item => {
+                    const circle = item.querySelector('.progress-circle');
+                    if (!circle) return;
+                    const percentage = item.dataset.percent || 0;
+                    const radius = circle.r.baseVal.value;
+                    const circumference = 2 * Math.PI * radius;
+                    circle.style.strokeDasharray = `${circumference} ${circumference}`;
+                    circle.style.strokeDashoffset = circumference;
+                    
+                    // Use requestAnimationFrame for smoother start
+                    requestAnimationFrame(() => {
+                        setTimeout(() => {
+                            const offset = circumference - (percentage / 100) * circumference;
+                            circle.style.strokeDashoffset = offset;
+                        }, 200);
+                    });
+                });
+            };
+            
+            // --- AI REWRITE MODAL & API CALL ---
+            const aiModalContent = aiModal.querySelector('.grid');
+            const aiModalTitle = aiModal.querySelector('#ai-modal-title');
+            const aiModalCloseContainer = aiModal.querySelector('.text-center');
+
+            rewriteButton.addEventListener('click', () => aiModalOverlay.style.display = 'flex');
+            const closeModal = () => aiModalOverlay.style.display = 'none';
+            aiModalClose.addEventListener('click', closeModal);
+            aiModalOverlay.addEventListener('click', (e) => {
+                if (e.target === aiModalOverlay) closeModal();
+            });
+
+            window.rewriteWithGemini = async (tone) => {
+                const aboutTextElement = document.getElementById('about-text-content');
+                const currentLang = localStorage.getItem('language') || 'en';
+                const langName = languages[currentLang] || 'English';
+                const originalText = translations[currentLang]?.about_text || translations.en.about_text;
+
+                // Show loading state
+                aiModalContent.style.display = 'none';
+                aiModalCloseContainer.style.display = 'none';
+                aiModalTitle.textContent = 'Rewriting...';
+                const spinner = document.createElement('div');
+                spinner.className = 'flex justify-center items-center h-24';
+                spinner.innerHTML = '<div class="spinner"></div>';
+                aiModal.appendChild(spinner);
+
+                const prompt = `Rewrite the following text for a portfolio "About Me" section in a ${tone.toLowerCase()} tone. The response MUST be in ${langName}. Make it engaging and professional, keeping it to 2-4 sentences. Original text: "${originalText}"`;
+
+                try {
+                    let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+                    const payload = { contents: chatHistory };
+                    const apiKey = ""; // API Key is handled by the environment
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+                    }
+
+                    const result = await response.json();
+                    const newText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                    if (newText) {
+                        aboutTextElement.textContent = newText;
+                        if (translations[currentLang]) {
+                            translations[currentLang].about_text = newText; // Update the stored translation
+                        }
+                    } else {
+                        throw new Error("Invalid or empty response from API.");
+                    }
+
+                } catch (error) {
+                    console.error('Error rewriting text with Gemini:', error);
+                    aiModalTitle.textContent = 'Error! Please try again.';
+                } finally {
+                    // Reset modal UI
+                    setTimeout(() => {
+                        aiModal.removeChild(spinner);
+                        aiModalContent.style.display = 'grid';
+                        aiModalCloseContainer.style.display = 'block';
+                        aiModalTitle.textContent = 'Choose a Tone';
+                        closeModal();
+                    }, 1000);
+                }
+            };
+
+            // --- 3D BACKGROUND LOGIC ---
+            let scene, camera, renderer, crystal;
+            let targetPosition = new THREE.Vector3();
+            let targetLookAt = new THREE.Vector3();
+            const cameraPositions = {
+                landing:    { pos: new THREE.Vector3(0, 0, 5), look: new THREE.Vector3(0, 0, 0) },
+                overview:   { pos: new THREE.Vector3(5, 0, 0), look: new THREE.Vector3(0, 0, 0) },
+                about:      { pos: new THREE.Vector3(-4, 2, 4), look: new THREE.Vector3(0, 0.5, 0) },
+                vision:     { pos: new THREE.Vector3(4, -2, 4), look: new THREE.Vector3(0, -0.5, 0) },
+                education:  { pos: new THREE.Vector3(0, 5, 0), look: new THREE.Vector3(0, 0, 0) },
+                experience: { pos: new THREE.Vector3(0, -5, 0), look: new THREE.Vector3(0, 0, 0) },
+                awards:     { pos: new THREE.Vector3(4, 3, 3), look: new THREE.Vector3(0.5, 0, 0) },
+                skills:     { pos: new THREE.Vector3(-4, -3, 3), look: new THREE.Vector3(-0.5, 0, 0) },
+                process:    { pos: new THREE.Vector3(3, 0, -4), look: new THREE.Vector3(0, 0, 0) },
+                projects:   { pos: new THREE.Vector3(0, 0, -5), look: new THREE.Vector3(0, 0, 0) },
+                contact:    { pos: new THREE.Vector3(0, 0, 5), look: new THREE.Vector3(0, 0, 0) }
+            };
+
+            const init3D = () => {
+                const bgCanvas = document.getElementById('bg-canvas');
+                if (!bgCanvas || !window.THREE) {
+                    console.warn("Three.js or canvas not found, skipping 3D background.");
+                    return;
+                }
+                scene = new THREE.Scene();
+                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                renderer = new THREE.WebGLRenderer({ canvas: bgCanvas, antialias: true, alpha: true });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+                const initialPos = cameraPositions.landing;
+                camera.position.copy(initialPos.pos);
+                targetPosition.copy(initialPos.pos);
+                targetLookAt.copy(initialPos.look);
+
+                const geometry = new THREE.IcosahedronGeometry(2.5, 0);
+                const material = new THREE.MeshNormalMaterial({ wireframe: true });
+                crystal = new THREE.Mesh(geometry, material);
+                scene.add(crystal);
+                
+                window.addEventListener('resize', onWindowResize, false);
+                animate3D();
+            };
+
+            const animate3D = () => {
+                requestAnimationFrame(animate3D);
+                if (!crystal || !camera || !renderer) return;
+
+                crystal.rotation.x += 0.001;
+                crystal.rotation.y += 0.002;
+                
+                // Smooth camera movement (interpolation)
+                camera.position.lerp(targetPosition, 0.05);
+                camera.lookAt(targetLookAt.lerp(camera.position, -0.05)); // Simplified lookAt lerp
+                
+                renderer.render(scene, camera);
+            };
+
+            const onWindowResize = () => {
+                if (!camera || !renderer) return;
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            };
+
+            window.moveCameraTo = (pageId) => {
+                const bgCanvas = document.getElementById('bg-canvas');
+                if(bgCanvas) bgCanvas.style.opacity = (pageId === 'landing') ? 1 : 0.25;
+                const newTarget = cameraPositions[pageId] || cameraPositions.landing;
+                targetPosition.copy(newTarget.pos);
+                targetLookAt.copy(newTarget.look);
+            };
+
+            // --- INITIALIZATION ---
+            function init() {
+                // Populate language dropdown
+                populateDropdown();
+                
+                // Load saved language or default to English
+                const savedLang = localStorage.getItem('language') || 'en';
+                setLanguage(savedLang);
+
+                // Load saved theme or default to light mode
+                const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+                applyTheme(savedDarkMode);
+
+                // Add haptic feedback listeners to buttons
+                document.querySelectorAll('.nav-button, .ai-button, .top-corner-button').forEach(button => {
+                    const addActiveClass = () => button.classList.add('button-active');
+                    const removeActiveClass = () => button.classList.remove('button-active');
+                    button.addEventListener('mousedown', addActiveClass);
+                    button.addEventListener('mouseup', removeActiveClass);
+                    button.addEventListener('mouseleave', removeActiveClass);
+                    button.addEventListener('touchstart', addActiveClass, { passive: true });
+                    button.addEventListener('touchend', removeActiveClass);
+                });
+
+                // Initialize the 3D background
+                init3D();
+            }
+
+            init();
+
+          } catch (error) {
+            console.error("An error occurred during portfolio initialization:", error);
+            // Optionally display a user-friendly error message on the page
+            document.body.innerHTML = '<div style="text-align: center; padding: 50px; font-family: sans-serif;"><h1>Oops!</h1><p>Something went wrong while loading the portfolio. Please try refreshing the page.</p></div>';
+          }
+        });
+    </script>
+</body>
+</html>
