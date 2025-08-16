@@ -13,9 +13,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;600&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
     
     <link rel="stylesheet" href="style.css">
+
+    <link rel="preload" as="image" href="Profile-pic.svg">
+    <link rel="preload" as="image" href="insta-1.svg">
+    <link rel="preload" as="image" href="insta-2.svg">
 </head>
 <body class="antialiased">
 
@@ -30,9 +35,14 @@
 
     <canvas id="bg-canvas"></canvas>
 
-    <a href="#" id="homeLink" class="top-corner-button" aria-label="Go to overview">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-    </a>
+    <div id="top-left-controls">
+        <button id="backLink" class="top-corner-button" aria-label="Go Back">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        </button>
+        <a href="#" id="homeLink" class="top-corner-button" aria-label="Go to overview">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        </a>
+    </div>
     
     <div id="top-right-controls">
         <div class="relative">
@@ -100,7 +110,7 @@
             <div class="content-box text-center md:text-left">
                 <div class="flex flex-col md:flex-row items-center gap-6 md:gap-8">
                     <div class="relative w-32 h-32 md:w-36 md:h-36 flex-shrink-0">
-                        <img id="profile-pic" src="Profile-pic.svg" alt="https://placehold.co/150x150/A7B89D/FDFBF5?text=DK" class="w-full h-full rounded-full object-cover border-4 border-white shadow-lg">
+                        <img id="profile-pic" src="Profile-pic.svg" alt="A portrait of Deeptanu Karmakar" class="w-full h-full rounded-full object-cover border-4 border-white shadow-lg">
                     </div>
                     <div>
                         <h1 class="font-dancing text-4xl md:text-5xl mb-4" data-translate="about_title">About Me</h1>
@@ -240,6 +250,7 @@
 
     <script src="language-data.js" defer></script>
     <script src="data.js" defer></script>
+    <script src="carousel.js" defer></script>
     <script src="script.js" defer></script>
 </body>
 
