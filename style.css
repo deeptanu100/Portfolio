@@ -97,7 +97,7 @@ body {
     box-shadow: 0 12px 35px 0 rgba(0, 0, 0, 0.15);
 }
 .top-corner-button {
-    position: relative; /* Positioning context for the icon */
+    position: relative;
     width: 40px;
     height: 40px;
     border-radius: 50%;
@@ -116,8 +116,22 @@ body {
 }
 .button-active { transform: scale(0.95) !important; }
 
-#homeLink { position: fixed; top: 1rem; left: 1rem; z-index: 1001; display: none; }
-#top-right-controls { position: fixed; top: 1rem; right: 1rem; z-index: 1001; display: flex; gap: 0.5rem; }
+#top-left-controls { 
+    position: fixed; 
+    top: 1rem; 
+    left: 1rem; 
+    z-index: 1001; 
+    display: none;
+    gap: 0.5rem;
+}
+#top-right-controls { 
+    position: fixed; 
+    top: 1rem; 
+    right: 1rem; 
+    z-index: 1001; 
+    display: flex; 
+    gap: 0.5rem; 
+}
 #translate-dropdown {
     position: absolute;
     top: 3.5rem;
@@ -188,22 +202,20 @@ body.dark-mode .spinner { border-left-color: #f0f0f0; }
 /* --- STYLES FOR SOCIAL FEED --- */
 
 #social-feed-container {
-    padding: 0 3.5rem;
+    padding: 0 1rem;
     max-width: 100%;
 }
 
 #social-feed-scroll {
     display: flex;
     gap: 1.5rem;
-    overflow-x: auto;
-    padding: 1rem;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-}
-
-#social-feed-scroll::-webkit-scrollbar {
-    display: none;
+    padding: 1rem 0; /* Padding on top/bottom, not sides */
+    overflow-x: hidden;
+    perspective: 1000px;
+    transform-style: preserve-3d;
+    /* The mask creates the seamless fade effect on the edges */
+    -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+    mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
 }
 
 .social-feed-item {
@@ -214,11 +226,11 @@ body.dark-mode .spinner { border-left-color: #f0f0f0; }
     flex-direction: column;
     border-radius: 1.5rem;
     padding: 0.75rem;
-    scroll-snap-align: start;
     background: var(--button-bg-light);
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .feed-item-thumbnail, .feed-item-info {
@@ -352,14 +364,19 @@ body.dark-mode .spinner { border-left-color: #f0f0f0; }
     position: absolute;
     top: 0;
     left: 0;
-    background-color: #ef4444;
-    color: white;
-    padding: 0.25rem 0.75rem;
-    border-radius: 1.5rem 0 1rem 0;
-    font-size: 0.7rem;
-    font-weight: 600;
     z-index: 2;
     display: none;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1.5rem 0 1rem 0;
+    background-color: #ef4444;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 600;
+    transform: translateZ(1px); /* Fixes 3D layering glitch */
+}
+
+.social-feed-item.is-new .new-tag {
+    display: block;
 }
 
 /* Dark Mode Feed Adjustments */
